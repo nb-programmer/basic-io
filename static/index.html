@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>BASIC interpreter</title>
+        <link rel="stylesheet" href="codemirror.css">
+        <script src="codemirror.js"></script>
+        <script src="basic.js"></script>
+    </head>
+    <body>
+        <h1>BASIC interpreter</h1>
+        <table>
+            <tr>
+                <td><button id="btn_execute">Execute</button></td>
+                <td><input id="chk_hide_parser" type="checkbox" /><label for="chk_hide_parser">Hide parser log</label></td>
+                <td><input id="chk_hide_runner" type="checkbox" /><label for="chk_hide_runner">Hide runner log</label></td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td><button id="btn_ld_slt_1">Load slot 1</button></td>
+                <td><button id="btn_ld_slt_2">Load slot 2</button></td>
+                <td><button id="btn_ld_slt_3">Load slot 3</button></td>
+            </tr>
+            <tr>
+                <td><button id="btn_st_slt_1">Save slot 1</button></td>
+                <td><button id="btn_st_slt_2">Save slot 2</button></td>
+                <td><button id="btn_st_slt_3">Save slot 3</button></td>
+            </tr>
+        </table>
+        <table width="100%">
+            <tr>
+                <td><span style="font-weight: bold;">Program</span></td>
+                <td><span style="font-weight: bold;">Result</span></td>
+            </tr>
+            <tr>
+                <td width="50%" style="border: 1px solid #888; vertical-align: top; text-align: left;"><div id="basic_code_container"></div></td>
+                <td width="50%" style="border: 1px solid #888; vertical-align: top; text-align: left;"><pre id="prog_output" style="height: 480px; overflow-y: scroll;">Click "Execute" to run</pre></td>
+            </tr>
+        </table>
+        <script>
+            var DefaultCode = "PRINT(\"Hello, world!\")";
+
+            var PROGRAM_READY = 0;
+            var PROGRAM_STARTING = 1;
+            var PROGRAM_RUNNING = 2;
+            var programState = PROGRAM_READY;
+            
+            function updateButtonState() {
+                let state_text = "Execute";
+                switch (programState) {
+                case PROGRAM_READY: state_text = "Execute"; document.getElementById("btn_execute").disabled = false; break;
+                case PROGRAM_STARTING: document.getElementById("btn_execute").disabled = true; break;
+                case PROGRAM_RUNNING: state_text = "Stop"; document.getElementById("btn_execute").disabled = false; break;
+                default: document.getElementById("btn_execute").disabled = false;
+                }
+                document.getElementById("btn_execute").textContent = state_text;
+            }
+
+            var programExecXHR = new XMLHttpRequest();
+            programExecXHR.addEventListener('readystatechange', e => {
+                switch (programExecXHR.readyState) {
+                case 1:
+                    //Request not sent yet
+                    programState = PROGRAM_STARTING;
+                    updateButtonState();
+                    break;
+
+                //We have some response incoming, so clear the output window
+                case 2:
+                    document.getElementById('prog_output').value = "";
+                    programState = PROGRAM_RUNNING;
+                    updateButtonState();
+                    break;
+
+                //Partial response
+                case 3:
+                    if (programExecXHR.status == 200) {
+                        //Set the output window text to the received output
+                        document.getElementById('prog_output').textContent = programExecXHR.responseText;
+                        document.getElementById('prog_output').scrollTop = document.getElementById('prog_output').scrollHeight;
+                    }
+                    programState = PROGRAM_RUNNING;
+                    updateButtonState();
+                    break;
+
+                //Complete response
+                case 4:
+                    if (programExecXHR.status == 200) {
+                        //Set the output window text to the received output
+                        document.getElementById('prog_output').textContent = programExecXHR.responseText;
+                        document.getElementById('prog_output').scrollTop = document.getElementById('prog_output').scrollHeight;
+                    }
+                default:
+                    programState = PROGRAM_READY;
+                    updateButtonState();
+                }
+            });
+            programExecXHR.addEventListener('error', function(e) {
+                if (programExecXHR.status == 0)
+                    alert("Failed to execute the code: Connection to the server failed");
+                else
+                    alert("Failed to execute the code: Server responded with status " + programExecXHR.status);
+            });
+
+            var myCodeMirror = new CodeMirror(document.getElementById("basic_code_container"), {
+                'lineNumbers': true,
+                'indentUnit': 4,
+                'theme': 'default',
+                'smartIndent': true,
+                'enterMode': "flat",
+                'styleActiveLine': true,
+                'autofocus': true,
+                'viewportMargin': 120,
+                'value': DefaultCode,
+            });
+
+            document.getElementById("btn_execute").addEventListener('click', e=> {
+                var code_body = myCodeMirror.getValue();
+                let req = programExecXHR;
+                switch (programState) {
+                case PROGRAM_READY:
+                    let query_flags = [];
+                    if (document.getElementById("chk_hide_parser").checked) query_flags.push("hide_parser_log");
+                    if (document.getElementById("chk_hide_runner").checked) query_flags.push("hide_runner_log");
+
+                    let execute_url = "/execute";
+                    if (query_flags.length > 0) execute_url += '?' + query_flags.join("&")
+                    req.open("POST", execute_url);
+                    req.send(code_body);
+                    break;
+                case PROGRAM_RUNNING:
+                    req.abort();
+                    break;
+                }
+            });
+
+            function load_program(slot_no) {
+                let fetch_url = "/load/" + slot_no;
+                fetch(fetch_url)
+                .then(d => {
+                    if (d.ok) {
+                        d.text()
+                        .then(t => myCodeMirror.setValue(t));
+                    } else alert("Server was unable to load slot " + slot_no + ".\nMaybe try to save first!");
+                })
+                .catch(e=>alert("Connection error while trying to load slot " + slot_no));
+            }
+
+            document.getElementById("btn_ld_slt_1").addEventListener('click', ()=>load_program(1));
+            document.getElementById("btn_ld_slt_2").addEventListener('click', ()=>load_program(2));
+            document.getElementById("btn_ld_slt_3").addEventListener('click', ()=>load_program(3));
+
+            function store_program(slot_no) {
+                let fetch_url = "/save/" + slot_no;
+                fetch(fetch_url, {
+                    "method": "POST",
+                    "body": myCodeMirror.getValue()
+                })
+                .then(d => {
+                    if (d.ok) alert("Saved to slot " + slot_no +" successfully!");
+                    else alert("Server failed to save to slot " + slot_no);
+                })
+                .catch(e=>alert("Connection error while trying to save slot " + slot_no));
+            }
+            document.getElementById("btn_st_slt_1").addEventListener('click', ()=>store_program(1));
+            document.getElementById("btn_st_slt_2").addEventListener('click', ()=>store_program(2));
+            document.getElementById("btn_st_slt_3").addEventListener('click', ()=>store_program(3));
+        </script>
+    </body>
+</html>
