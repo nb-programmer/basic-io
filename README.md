@@ -1,16 +1,18 @@
 # Cloud BASIC interpreter
 
-BASIC language interpreter as PaaS!
+BASIC language interpreter for the cloud!
 
 Run BASIC programs in your Web Browser by compiling it on the cloud, and sending the output back.
 
-Note: This branch is a snapshot of the original submission I made for my University project.
-
 ## What is this?
 
-A BASIC interpreter with a few commands. But it can be used through a web browser.
+A BASIC interpreter with a few commands, but it can be used through a web browser.
 
 The BASIC code typed by the user is sent as a POST request to the BASIC server. Over there, the body is separated, and sent to various stages in the parser chain.
+
+This project was inspried by a video by [Seth Bling](https://www.youtube.com/watch?v=t4e7PjRygt0) who made a whole BASIC interpreter in Minecraft. Wow.
+
+It was made as a University project on using Linux system calls to access various resources (such as sockets). I added the application of interpreting BASIC code :)
 
 ## How it works?
 
@@ -136,3 +138,14 @@ while val < 10 then
  val = val + 1
 end
 ```
+
+## TODO
+
+Some features I would like to implement in this project:
+
+- [ ] Refactor the whole thing :)
+- [ ] Add more built-in functions and constants
+- [ ] Add ability to create user-defined functions
+- [ ] Make use of WebSocket to allow real-time communication
+  - [ ] Remove the Web server entirely so that the Pages can be served by a real Web server. The BASIC interpreter will run using only WebSocket.
+- [ ] Remove dependencies on Linux (it was made for Linux as that was the subject I wrote it for)
