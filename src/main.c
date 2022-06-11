@@ -53,7 +53,6 @@ void test_build_expr_print(ASTNode *program_sequence);
 
 //Which TCP Port to start listening on
 const int LISTEN_PORT = 1111;
-const char SAVE_SLOT_PATH[] = "./user/program_slot%d.bas";
 
 /* APPLICATION FUNCTIONS */
 
@@ -143,7 +142,7 @@ void alloc_read_http_program(int sock_fd, http_request_header *req, http_respons
 
 //Route for POST "/execute"
 void run_basic_program(int sock_fd, http_request_header *req, http_response_header *res) {
-    int hide_parser_log = 0, hide_runner_log = 0;
+    int show_parser_log = 0, show_runner_log = 0;
     char *buffer = NULL;
     alloc_read_http_program(sock_fd, req, res, &buffer);
     if (buffer == NULL) return;
@@ -151,32 +150,30 @@ void run_basic_program(int sock_fd, http_request_header *req, http_response_head
     //Check if any flags were passed
     for (int i=0;i<req->query_string_count;i++) {
         char *query = req->query_string[i];
-        printf("> Query flag get: %s\n", query);
-        if (strcmp(query, "hide_parser_log") == 0) hide_parser_log = 1;
-        if (strcmp(query, "hide_runner_log") == 0) hide_runner_log = 1;
+        printf("[HTTP] > Query flag get: %s\n", query);
+        if (strcmp(query, "show_parser_log") == 0) show_parser_log = 1;
+        if (strcmp(query, "show_runner_log") == 0) show_runner_log = 1;
     }
 
     /* Debugging */
 
     //Reset logging mask
-    log_print_mask = LOGMASK_ALL;
+    log_print_mask = LOGTYPE_ERROR | LOGTYPE_INFO;
 
-    printf("Got program:\n====\n%s\n====\n", buffer);
-
-    if (hide_parser_log) {
+    if (show_parser_log) {
         //Parser logs to "debug" mask
-        log_print_mask &= ~LOGTYPE_DEBUG;
+        log_print_mask |= LOGTYPE_DEBUG;
     }
-    if (hide_runner_log) {
+    if (show_runner_log) {
         //Runner logs to "message" mask
-        log_print_mask &= ~LOGTYPE_MESSAGE;
+        log_print_mask |= LOGTYPE_MESSAGE;
     }
 
     //Put out OK header
     res->status_code = 200;
     http_write_header(sock_fd, res);
 
-    printf("Beginning executing the program\n");
+    printf("[HTTP] Beginning executing the program\n");
 
     //Redirect all output from this point onwards to the client
 #ifdef OUTPUT_CLIENT_REDIRECT
@@ -197,95 +194,7 @@ void run_basic_program(int sock_fd, http_request_header *req, http_response_head
 #ifdef OUTPUT_CLIENT_REDIRECT
     stdout2fd_reset(copy_stdout);
 #endif
-    printf("Done executing the program\n");
-}
-
-//Route for GET "/load/<id>"
-void read_save_slot(int sock_fd, http_request_header *req, http_response_header *res, int slot_no) {
-    char save_path[256] = { 0 };
-    sprintf(save_path, SAVE_SLOT_PATH, slot_no);
-    printf("Try to load program from slot %d, from \"%s\"... ", slot_no, save_path);
-
-    int r_fd;
-    if ((r_fd = open(save_path, O_RDONLY, 0)) < 0) {
-        http_respond_status_nf(sock_fd, res);
-        return;
-    }
-
-    const unsigned int CHUNK_SIZE = 1024;
-    char chunk[CHUNK_SIZE];
-    int chunk_read = 0;
-    int is_header_sent = 0;
-
-    //Read the whole program and send to client
-    do {
-        chunk_read = read(r_fd, chunk, CHUNK_SIZE);
-        if (!is_header_sent) {
-            if (chunk_read >= 0) {
-                res->status_code = 200;
-                http_write_header(sock_fd, res);
-            } else {
-                res->status_code = 500;
-                http_write_header(sock_fd, res);
-                fd_write_string(sock_fd, "Failed to read program from save slot");
-                break;
-            }
-            is_header_sent = 1;
-        }
-        if (chunk_read > 0)
-            if (write(sock_fd, chunk, chunk_read) < 0)
-                break;
-    } while (chunk_read > 0);
-
-    printf("Done\n");
-
-    //Close the file
-    close(r_fd);
-}
-
-//Route for POST "/save/<id>"
-void write_save_slot(int sock_fd, http_request_header *req, http_response_header *res, int slot_no) {
-    if (slot_no < 1 || slot_no > 3) {
-        //For now, only 3 slots are allowed
-        http_respond_status_nf(sock_fd, res);
-        return;
-    }
-
-    char *buffer = NULL;
-    alloc_read_http_program(sock_fd, req, res, &buffer);
-    if (buffer == NULL) return;
-
-    char save_path[256] = { 0 };
-    sprintf(save_path, SAVE_SLOT_PATH, slot_no);
-    printf("Try to save program to slot %d, into \"%s\"... ", slot_no, save_path);
-
-    int w_fd;
-    if ((w_fd = open(save_path, O_WRONLY | O_TRUNC | O_CREAT, 0600)) < 0) {
-        res->status_code = 500;
-        http_write_header(sock_fd, res);
-        fd_write_string(sock_fd, "Failed to open save slot file for writing");
-        free(buffer);
-        return;
-    }
-
-    //Write the program to the file
-    //TODO: Check for any kind of injection attacks!
-    if (write(w_fd, buffer, strlen(buffer)) < 0) {
-        res->status_code = 500;
-        http_write_header(sock_fd, res);
-        fd_write_string(sock_fd, "Failed to write the program into the save slot");
-        close(w_fd);
-        free(buffer);
-        return;
-    }
-
-    //Close the file
-    close(w_fd);
-
-    res->status_code = 200;
-    http_write_header(sock_fd, res);
-    free(buffer);
-    printf("Done\n");
+    printf("[HTTP] Done executing the program\n");
 }
 
 
@@ -293,11 +202,6 @@ void write_save_slot(int sock_fd, http_request_header *req, http_response_header
 //Respond to client requests based on URI
 void generate_response(int sock_fd, http_request_header *req, http_response_header *res) {
     const char path_execute[] = "/execute";
-    const char path_ast_only[] = "/ast";
-    const char path_parse_tree_only[] = "/parse";
-    const char path_slot_load[] = "/load/%d";
-    const char path_slot_save[] = "/save/%d";
-
     int arg1_int;
 
     if (strcmp(req->fetch_path, "/") == 0) {
@@ -312,12 +216,6 @@ void generate_response(int sock_fd, http_request_header *req, http_response_head
     } else if (strcmp(req->fetch_path, "/basic.js") == 0) {
         //CodeMirror BASIC syntax module
         http_respond_file(sock_fd, res, "static/basic.js", "text/javascript");
-    } else if (sscanf(req->fetch_path, path_slot_load, &arg1_int) == 1) {
-        //Load a saved program from server (if exists)
-        read_save_slot(sock_fd, req, res, arg1_int);
-    } else if (sscanf(req->fetch_path, path_slot_save, &arg1_int) == 1) {
-        //Save the given program source to the save slot
-        write_save_slot(sock_fd, req, res, arg1_int);
     } else if (strcmp(req->fetch_path, path_execute) == 0) {
         //Execute given BASIC program
         run_basic_program(sock_fd, req, res);

@@ -331,7 +331,7 @@ int basic_expr_make_tree(Queue *infix_queue, ASTNode *root) {
                         return 1;
                     }
                     if (op2 == NULL) {
-                        lprintf("AST", LOGTYPE_ERROR, "Error: Operator expecterd 2 operands, but 1 found\n");
+                        lprintf("AST", LOGTYPE_ERROR, "Error: Operator expected 2 operands, but 1 found\n");
                         return 1;
                     }
 

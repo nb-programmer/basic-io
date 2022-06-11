@@ -11,20 +11,8 @@
         <table>
             <tr>
                 <td><button id="btn_execute">Execute</button></td>
-                <td><input id="chk_hide_parser" type="checkbox" /><label for="chk_hide_parser">Hide parser log</label></td>
-                <td><input id="chk_hide_runner" type="checkbox" /><label for="chk_hide_runner">Hide runner log</label></td>
-            </tr>
-        </table>
-        <table>
-            <tr>
-                <td><button id="btn_ld_slt_1">Load slot 1</button></td>
-                <td><button id="btn_ld_slt_2">Load slot 2</button></td>
-                <td><button id="btn_ld_slt_3">Load slot 3</button></td>
-            </tr>
-            <tr>
-                <td><button id="btn_st_slt_1">Save slot 1</button></td>
-                <td><button id="btn_st_slt_2">Save slot 2</button></td>
-                <td><button id="btn_st_slt_3">Save slot 3</button></td>
+                <td><input id="chk_show_parser" type="checkbox" /><label for="chk_show_parser">Show parser log</label></td>
+                <td><input id="chk_show_runner" type="checkbox" /><label for="chk_show_runner">Show runner log</label></td>
             </tr>
         </table>
         <table width="100%">
@@ -101,6 +89,26 @@
                 else
                     alert("Failed to execute the code: Server responded with status " + programExecXHR.status);
             });
+			
+			function executeCode(cm) {
+				var code_body = cm.getValue();
+                let req = programExecXHR;
+                switch (programState) {
+                case PROGRAM_READY:
+                    let query_flags = [];
+                    if (document.getElementById("chk_show_parser").checked) query_flags.push("show_parser_log");
+                    if (document.getElementById("chk_show_runner").checked) query_flags.push("show_runner_log");
+
+                    let execute_url = "/execute";
+                    if (query_flags.length > 0) execute_url += '?' + query_flags.join("&")
+                    req.open("POST", execute_url);
+                    req.send(code_body);
+                    break;
+                case PROGRAM_RUNNING:
+                    req.abort();
+                    break;
+                }
+			}
 
             var myCodeMirror = new CodeMirror(document.getElementById("basic_code_container"), {
                 'lineNumbers': true,
@@ -112,59 +120,12 @@
                 'autofocus': true,
                 'viewportMargin': 120,
                 'value': DefaultCode,
+				'extraKeys': {
+					'Ctrl-Enter': (cm) => executeCode(cm)
+				}
             });
 
-            document.getElementById("btn_execute").addEventListener('click', e=> {
-                var code_body = myCodeMirror.getValue();
-                let req = programExecXHR;
-                switch (programState) {
-                case PROGRAM_READY:
-                    let query_flags = [];
-                    if (document.getElementById("chk_hide_parser").checked) query_flags.push("hide_parser_log");
-                    if (document.getElementById("chk_hide_runner").checked) query_flags.push("hide_runner_log");
-
-                    let execute_url = "/execute";
-                    if (query_flags.length > 0) execute_url += '?' + query_flags.join("&")
-                    req.open("POST", execute_url);
-                    req.send(code_body);
-                    break;
-                case PROGRAM_RUNNING:
-                    req.abort();
-                    break;
-                }
-            });
-
-            function load_program(slot_no) {
-                let fetch_url = "/load/" + slot_no;
-                fetch(fetch_url)
-                .then(d => {
-                    if (d.ok) {
-                        d.text()
-                        .then(t => myCodeMirror.setValue(t));
-                    } else alert("Server was unable to load slot " + slot_no + ".\nMaybe try to save first!");
-                })
-                .catch(e=>alert("Connection error while trying to load slot " + slot_no));
-            }
-
-            document.getElementById("btn_ld_slt_1").addEventListener('click', ()=>load_program(1));
-            document.getElementById("btn_ld_slt_2").addEventListener('click', ()=>load_program(2));
-            document.getElementById("btn_ld_slt_3").addEventListener('click', ()=>load_program(3));
-
-            function store_program(slot_no) {
-                let fetch_url = "/save/" + slot_no;
-                fetch(fetch_url, {
-                    "method": "POST",
-                    "body": myCodeMirror.getValue()
-                })
-                .then(d => {
-                    if (d.ok) alert("Saved to slot " + slot_no +" successfully!");
-                    else alert("Server failed to save to slot " + slot_no);
-                })
-                .catch(e=>alert("Connection error while trying to save slot " + slot_no));
-            }
-            document.getElementById("btn_st_slt_1").addEventListener('click', ()=>store_program(1));
-            document.getElementById("btn_st_slt_2").addEventListener('click', ()=>store_program(2));
-            document.getElementById("btn_st_slt_3").addEventListener('click', ()=>store_program(3));
+            document.getElementById("btn_execute").addEventListener('click', e=> executeCode(myCodeMirror));
         </script>
     </body>
 </html>

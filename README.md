@@ -52,10 +52,9 @@ These are the features implemented into the language (some were removed due to t
 
 - `IF` – a condition to check, and execute part of a program if the condition is true
 - `THEN` – must be used after specifying condition
-- `ELSE` – program to execute if the condition in the IF statement is false. Optional.
+- `ELSE` – program to execute if the condition in the IF statement is false. Optional
 - `END` – must be used to indicate the ending of IF program or ELSE program block
-- `WHILE` – similar to IF, but jumps back to condition after the program block is
-finished, till condition becomes FALSE
+- `WHILE` – similar to IF, but jumps back to condition after the program block is finished, till condition becomes FALSE
 
 ### Built-in constants
 
@@ -66,8 +65,7 @@ on the system that is running.
 
 ### Operations
 
-The operations follow the BODMAS rule, in the same precedence as C programming
-language.
+The operations follow the [BODMAS rule](https://www.mathsisfun.com/operation-order-bodmas.html), in the same precedence as C programming language.
 
 - Arithmetic: `+, -, *, /, %`
   - Performs the respective operation on two operands
