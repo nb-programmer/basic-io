@@ -1,13 +1,18 @@
 
 #include "utils.h"
-#include "basic.h"
+#include "basic/basic.h"
 
-#include "stack.h"
-#include "queue.h"
+#include <data_structures/stack.h>
+#include <data_structures/queue.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+// TODO: Fundamentally change how expressions are evaluated
+// Currently, having function1(function2() + 1) is parsed incorrectly.
+// first, function2() is added to the node, but "+ 1" is evaluated entirely independently of function2()
+// so it fails to find op1. The whole thing should be treated as one expression.
 
 /* BASIC PARSER */
 
@@ -19,7 +24,7 @@ int basic_parse_id_is_fn_call(BASICToken *tokens, int idx, int len) {
     );
 }
 
-//Skips whitespace and reaches the next token 
+// Skips whitespace and reaches the next token 
 void basic_token_seek_immediate(BASICParseTree *ptree, int *ptr, int end) {
     while (*ptr < end) {
         if (ptree->tokens[*ptr].token_type != TOKEN_WHITESPACE) break;
@@ -41,7 +46,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
         switch (ptree->tokens[i].token_type) {
         case TOKEN_IDENTIFIER:
         {
-            //The identifier may be a function call
+            // The identifier may be a function call
             if (basic_parse_id_is_fn_call(ptree->tokens, i, to)) {
                 cb_ret = basic_parse_form_function(ptree, root, i, to, &i);
                 if (cb_ret != 0) return cb_ret;
@@ -49,7 +54,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
             }
         }
 
-        //Not a function call, so it may be an expression
+        // Not a function call, so it may be an expression
         case TOKEN_NUM:
         case TOKEN_STRING:
         case TOKEN_SEPARATOR:
@@ -59,13 +64,13 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
             if (cb_ret != 0) return cb_ret;
             break;
 
-        //Keywords
+        // Keywords
         case TOKEN_KEYWORD:
         {
             lprintf("AST", LOGTYPE_DEBUG, "Parse keyword \"%s\"\n", ptree->tokens[i].token);
 
             if (strcasecmp(ptree->tokens[i].token, PARSE_KEYWORDS[KEYWORD_IDX_IF]) == 0) {
-                //"IF" clause. Has an expression and a program sequence to execute if the value of the expression is non-zero (true)
+                // "IF" clause. Has an expression and a program sequence to execute if the value of the expression is non-zero (true)
                 ASTNode *if_node = ast_create_node();
                 ASTNode *condition_node = ast_create_node();
                 ASTNode *if_true_node = ast_create_node();
@@ -85,7 +90,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
                 ast_append_child(if_node, if_true_node);
                 ast_append_child(if_node, if_false_node);
 
-                //The next part after "IF" is the condition (expression)
+                // The next part after "IF" is the condition (expression)
                 i++;
 
                 lprintf("AST", LOGTYPE_DEBUG, "Parse IF condition expression\n");
@@ -93,27 +98,27 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
                 if (cb_ret != 0) return cb_ret;
                 basic_token_seek_immediate(ptree, &i, to);
 
-                //Check if there is a "THEN"
+                // Check if there is a "THEN"
                 if (ptree->tokens[i].token_type == TOKEN_KEYWORD && strcasecmp(ptree->tokens[i].token, PARSE_KEYWORDS[KEYWORD_IDX_THEN]) == 0) {
-                    //Next part after "THEN" is the body, till "END" is found
+                    // Next part after "THEN" is the body, till "END" is found
                     i++;
                     int next_level = level + 1;
                     lprintf("AST", LOGTYPE_DEBUG, "Parse program statements at scope level %d\n", next_level);
                     int next_pos = -1;
                     int ret = basic_parse_to_ast_between_level(ptree, if_true_node, i, to, next_level, 1, &next_pos);
                     if (ret >= 0 && next_pos >= 0) {
-                        //Set token position to the next instruction returned
+                        // Set token position to the next instruction returned
                         i = next_pos;
                         if (ret == 2) {
-                            //Else route exists. Go to next symbol to find the program sequence within the else clause body
+                            // Else route exists. Go to next symbol to find the program sequence within the else clause body
                             i++;
                             lprintf("AST", LOGTYPE_DEBUG, "Parse program statements for %s at scope level %d\n", PARSE_KEYWORDS[KEYWORD_IDX_ELSE], next_level);
                             ret = basic_parse_to_ast_between_level(ptree, if_false_node, i, to, next_level, 1, &next_pos);
-                            //We basically do the same check again, for one last time
+                            // We basically do the same check again, for one last time
                             if (ret >= 0 && next_pos >= 0) {
                                 i = next_pos;
                                 if (ret == 2) {
-                                    //This time, if another else is found at the same level, throw an error
+                                    // This time, if another else is found at the same level, throw an error
                                     lprintf("AST", LOGTYPE_ERROR, "Error: %s clause cannot have more than one %s statements.\n", PARSE_KEYWORDS[KEYWORD_IDX_IF], PARSE_KEYWORDS[KEYWORD_IDX_ELSE]);
                                     return -3;
                                 }
@@ -128,7 +133,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
                     return -2;
                 }
             } else if (strcasecmp(ptree->tokens[i].token, PARSE_KEYWORDS[KEYWORD_IDX_WHILE]) == 0) {
-                //"WHILE" clause. Has an expression and a program sequence to execute till the value of the expression becomes zero (false)
+                // "WHILE" clause. Has an expression and a program sequence to execute till the value of the expression becomes zero (false)
                 ASTNode *while_node = ast_create_node();
                 ASTNode *condition_node = ast_create_node();
                 ASTNode *while_true_node = ast_create_node();
@@ -144,7 +149,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
                 ast_append_child(while_node, condition_node);
                 ast_append_child(while_node, while_true_node);
 
-                //The next part after "WHILE" is the condition (expression)
+                // The next part after "WHILE" is the condition (expression)
                 i++;
 
                 lprintf("AST", LOGTYPE_DEBUG, "Parse WHILE condition expression\n");
@@ -152,18 +157,18 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
                 if (cb_ret != 0) return cb_ret;
                 basic_token_seek_immediate(ptree, &i, to);
 
-                //Check if there is a "THEN"
+                // Check if there is a "THEN"
                 if (ptree->tokens[i].token_type == TOKEN_KEYWORD && strcasecmp(ptree->tokens[i].token, PARSE_KEYWORDS[KEYWORD_IDX_THEN]) == 0) {
-                    //Next part after "THEN" is the body, till "END" is found
+                    // Next part after "THEN" is the body, till "END" is found
                     i++;
                     int next_level = level + 1;
                     lprintf("AST", LOGTYPE_DEBUG, "Parse program statements at scope level %d\n", next_level);
                     int next_pos = -1;
                     int ret = basic_parse_to_ast_between_level(ptree, while_true_node, i, to, next_level, 1, &next_pos);
                     if (ret >= 0 && next_pos >= 0) {
-                        //Set token position to the next instruction returned
+                        // Set token position to the next instruction returned
                         i = next_pos;
-                        //Make sure the While statement doesn't have an Else part
+                        // Make sure the While statement doesn't have an Else part
                         if (ret == 2) {
                             lprintf("AST", LOGTYPE_ERROR, "Error: %s clause cannot have an %s statement.\n", PARSE_KEYWORDS[KEYWORD_IDX_WHILE], PARSE_KEYWORDS[KEYWORD_IDX_ELSE]);
                             return -3;
@@ -177,26 +182,26 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
                     return -2;
                 }
             } else if (strcasecmp(ptree->tokens[i].token, PARSE_KEYWORDS[KEYWORD_IDX_ELSE]) == 0) {
-                //Else clause for a matching IF clause
+                // Else clause for a matching IF clause
                 if (level > 0) {
                     lprintf("AST", LOGTYPE_DEBUG, "%s statement encountered, previouse scope level is %d\n", PARSE_KEYWORDS[KEYWORD_IDX_ELSE], level);
-                    //Where to resume token parsing
+                    // Where to resume token parsing
                     *next_ptr = i;
-                    //Return 2 to indicate there is an alternate path
+                    // Return 2 to indicate there is an alternate path
                     return 2;
                 } else {
                     lprintf("AST", LOGTYPE_ERROR, "Error: Found an unexpected \"%s\" without corresponding %s clause\n", PARSE_KEYWORDS[KEYWORD_IDX_ELSE], PARSE_KEYWORDS[KEYWORD_IDX_IF]);
                     return -1;
                 }
             } else if (strcasecmp(ptree->tokens[i].token, PARSE_KEYWORDS[KEYWORD_IDX_END]) == 0) {
-                //"END" keyword. We are in some kind of body segment of a clause
-                //Check if we are actually inside a body by checking out current level
-                //If it is 0, we are at the main sequence, but an extra "END" was present
+                // "END" keyword. We are in some kind of body segment of a clause
+                // Check if we are actually inside a body by checking out current level
+                // If it is 0, we are at the main sequence, but an extra "END" was present
                 if (level > 0) {
                     lprintf("AST", LOGTYPE_DEBUG, "End of program statements at scope level %d\n", level);
-                    //Where to resume token parsing
+                    // Where to resume token parsing
                     *next_ptr = i;
-                    //Return 1 to indicate it is the end of the current sequence
+                    // Return 1 to indicate it is the end of the current sequence
                     return 1;
                 } else {
                     lprintf("AST", LOGTYPE_ERROR, "Error: Found an unexpected \"%s\" without corresponding %s/%s/%s clause\n", PARSE_KEYWORDS[KEYWORD_IDX_END], PARSE_KEYWORDS[KEYWORD_IDX_IF], PARSE_KEYWORDS[KEYWORD_IDX_ELSE], PARSE_KEYWORDS[KEYWORD_IDX_WHILE]);
@@ -259,7 +264,7 @@ ASTNode *basic_parse_dequeuetok(Queue *queue) {
 }
 
 int basic_expr_make_tree(Queue *infix_queue, ASTNode *root) {
-    //Pull elements from the infix expression and convert it to a tree
+    // Pull elements from the infix expression and convert it to a tree
     StackNode *operator_stack = NULL, *operand_stack = NULL;
     Queue postfix_queue; postfix_queue.front = NULL, postfix_queue.rear = NULL;
     ASTNode *nxttok, *poptok, *expr_node = ast_create_node(), *root_exp_paren1 = ast_create_node(), *root_exp_paren2 = ast_create_node();
@@ -273,20 +278,20 @@ int basic_expr_make_tree(Queue *infix_queue, ASTNode *root) {
     basic_parse_pushtok(&operator_stack, root_exp_paren1);
     basic_parse_enqueuetok(infix_queue, root_exp_paren2);
 
-    //Read the expression in sequential order
+    // Read the expression in sequential order
     while ((nxttok = basic_parse_dequeuetok(infix_queue)) != NULL) {
         if (nxttok->type == AST_OPERATION) {
             if (nxttok->data.token.op == OP_OPEN_PAREN) {
-                //If opening bracket, put it on stack
+                // If opening bracket, put it on stack
                 basic_parse_pushtok(&operator_stack, nxttok);
             } else if (nxttok->data.token.op == OP_CLOSE_PAREN) {
-                //If closing bracket, pop out the operators with precedence and put in expression
+                // If closing bracket, pop out the operators with precedence and put in expression
                 while ((poptok = basic_parse_poptok(&operator_stack)) != NULL) {
                     if (poptok->data.token.op == OP_OPEN_PAREN) break;
                     basic_parse_enqueuetok(&postfix_queue, poptok);
                 }
             } else {
-                //Any kind of operation will pop the stack till higher precedence
+                // Any kind of operation will pop the stack till higher precedence
                 do {
                     if (operator_stack == NULL) break;
                     poptok = (ASTNode *) operator_stack->data;
@@ -296,35 +301,35 @@ int basic_expr_make_tree(Queue *infix_queue, ASTNode *root) {
                 basic_parse_pushtok(&operator_stack, nxttok);
             }
         } else {
-            //Put all operands in postfix queue
+            // Put all operands in postfix queue
             basic_parse_enqueuetok(&postfix_queue, nxttok);
         }
     }
 
-    //Convert postfix expression to a tree
+    // Convert postfix expression to a tree
     while ((nxttok = basic_parse_dequeuetok(&postfix_queue)) != NULL) {
         if (nxttok->type == AST_OPERATION) {
-            //Final sequence should not contain any parenthesis
+            // Final sequence should not contain any parenthesis
             if (nxttok->data.token.op == OP_OPEN_PAREN || nxttok->data.token.op == OP_CLOSE_PAREN) {
                 lprintf("AST", LOGTYPE_ERROR, "Error: Unexpectedly found unpaired parenthesis in expression\n");
                 return 1;
             } else {
                 ASTNode *op1, *op2;
                 if (ast_get_operator_type(nxttok->data.token.op) == OPTYPE_UNARY) {
-                    //Pop two values from the stack and make them the child
+                    // Pop two values from the stack and make them the child
                     op1 = basic_parse_poptok(&operand_stack);
                     if (op1 == NULL) {
                         lprintf("AST", LOGTYPE_ERROR, "Error: Operator expected 1 operand, but none found\n");
                         return 1;
                     }
 
-                    //Make the operand the child of this operator
+                    // Make the operand the child of this operator
                     ast_append_child(nxttok, op1);
 
-                    //Push back this operator
+                    // Push back this operator
                     basic_parse_pushtok(&operand_stack, nxttok);
                 } else if (ast_get_operator_type(nxttok->data.token.op) == OPTYPE_BINARY) {
-                    //Pop two values from the stack and make them the child
+                    // Pop two values from the stack and make them the child
                     op1 = basic_parse_poptok(&operand_stack); op2 = basic_parse_poptok(&operand_stack);
                     if (op1 == NULL) {
                         lprintf("AST", LOGTYPE_ERROR, "Error: Operator expected 2 operands, but none found\n");
@@ -335,12 +340,12 @@ int basic_expr_make_tree(Queue *infix_queue, ASTNode *root) {
                         return 1;
                     }
 
-                    //Make the operands the children of this operator
-                    //Since these were in the stack, they are in opposite order
+                    // Make the operands the children of this operator
+                    // Since these were in the stack, they are in opposite order
                     ast_append_child(nxttok, op2);
                     ast_append_child(nxttok, op1);
 
-                    //Push back this operator
+                    // Push back this operator
                     basic_parse_pushtok(&operand_stack, nxttok);
                 }
             }
@@ -354,14 +359,14 @@ int basic_expr_make_tree(Queue *infix_queue, ASTNode *root) {
         return 1;
     }
 
-    //Join the expression structure with the root node
+    // Join the expression structure with the root node
     ast_append_child(expr_node, poptok);
     ast_append_child(root, expr_node);
 
     return 0;
 }
 
-//Convert an expression into prefix notation and create an AST
+// Convert an expression into prefix notation and create an AST
 int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_from, int parse_to, int *parse_new_pos) {
     lprintf("AST", LOGTYPE_DEBUG, "Trying to find expression between tokens %d and %d\n", parse_from, parse_to);
     int expr_start_idx = parse_from, expr_end_idx = -1, scope_level = 0;
@@ -369,7 +374,7 @@ int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_
     BASICToken *expr = ptree->tokens;
     *parse_new_pos = parse_from;
 
-    //Expression ends when we reach end of current range, or a new line, or end of program
+    // Expression ends when we reach end of current range, or a new line, or end of program
     while (*parse_new_pos < parse_to) {
         if (expr[*parse_new_pos].token_type == TOKEN_SEPARATOR) {
             if (expr[*parse_new_pos].token[0] == '(') scope_level++;
@@ -378,26 +383,26 @@ int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_
         if (expr[*parse_new_pos].token_type == TOKEN_END
             || expr[*parse_new_pos].token_type == TOKEN_KEYWORD
             || (expr[*parse_new_pos].token_type == TOKEN_WHITESPACE && expr[*parse_new_pos].token[0]=='\n' && scope_level==0)
-            //|| (expr[*parse_new_pos].token_type == TOKEN_SEPARATOR && expr[*parse_new_pos].token[0]==')' && scope_level==0)
+            // || (expr[*parse_new_pos].token_type == TOKEN_SEPARATOR && expr[*parse_new_pos].token[0]==')' && scope_level==0)
         ) break;
         (*parse_new_pos)++;
     }
 
-    //Save expression range and go back one token
+    // Save expression range and go back one token
     expr_end_idx = (*parse_new_pos)--;
     lprintf("AST", LOGTYPE_DEBUG, "Expression found from token %d to %d\n", expr_start_idx, expr_end_idx);
 
-    //Construct a stack of AST nodes to then rearrange to a tree structure
+    // Construct a stack of AST nodes to then rearrange to a tree structure
     Queue infix_queue;
     infix_queue.front = infix_queue.rear = NULL;
     for (int i = expr_start_idx; i < expr_end_idx; i++) {
         if (expr[i].token_type == TOKEN_END) break;
         ASTNode *operator_node = ast_create_node();
 
-        //Translate tokens to appropriate nodes
+        // Translate tokens to appropriate nodes
         switch (expr[i].token_type) {
         case TOKEN_NUM:
-            //We can either have an integer (no decimal point) or float (with decimal point)
+            // We can either have an integer (no decimal point) or float (with decimal point)
             operator_node->type = AST_IMMEDIATE;
             if (string_is_float(expr[i].token)) {
                 lprintf("AST", LOGTYPE_DEBUG, "Parse floating number\n");
@@ -416,7 +421,7 @@ int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_
             strcpy(operator_node->data.token.literal.str, expr[i].token);
             break;
         case TOKEN_BOOL:
-            //Booleans are same as just setting value to 0 or 1
+            // Booleans are same as just setting value to 0 or 1
             lprintf("AST", LOGTYPE_DEBUG, "Parse boolean\n");
             operator_node->type = AST_IMMEDIATE;
             operator_node->data.token_type = DTYPE_NUM;
@@ -446,12 +451,12 @@ int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_
             case '(': operator_node->data.token.op = OP_OPEN_PAREN; break;
             case ')': operator_node->data.token.op = OP_CLOSE_PAREN; break;
             case '=':
-                //If we are in a condition node
+                // If we are in a condition node
                 if (root->type == AST_CONDITION)
-                    //We are testing for equality
+                    // We are testing for equality
                     operator_node->data.token.op = OP_EQ;
                 else
-                    //We are assigning an expression to an identifier
+                    // We are assigning an expression to an identifier
                     operator_node->data.token.op = OP_ASSIGN;
                 break;
             }
@@ -486,20 +491,20 @@ int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_
 }
 
 int basic_parse_form_function(BASICParseTree *ptree, ASTNode *root, int parse_from, int parse_to, int *parse_new_pos) {
-    //Function call with possibly multiple argument expressions
+    // Function call with possibly multiple argument expressions
     int scope_level = 0, arg_start = parse_from + 2, arg_end = -1;
     BASICToken *func = ptree->tokens;
 
-    //Create a node to call a function
+    // Create a node to call a function
     ASTNode *fn_call_node = ast_create_node();
     fn_call_node->type = AST_FUNC_CALL;
     strcpy(fn_call_node->data.token.kw, func[*parse_new_pos].token);
     ast_append_child(root, fn_call_node);
 
-    //Display information
+    // Display information
     lprintf("AST", LOGTYPE_DEBUG, "Function call to \"%s\"\n", func[*parse_new_pos].token);
     lprintf("AST", LOGTYPE_DEBUG, "Parsing function call argument list\n");
-    //Increment to reach the '('
+    // Increment to reach the '('
     (*parse_new_pos)++;
     while (*parse_new_pos < parse_to) {
         if (func[*parse_new_pos].token_type == TOKEN_SEPARATOR) {
@@ -510,6 +515,7 @@ int basic_parse_form_function(BASICParseTree *ptree, ASTNode *root, int parse_fr
                 if (scope_level == 0) {
                     arg_end = *parse_new_pos;
                     lprintf("AST", LOGTYPE_DEBUG, "Function argument parse:\n");
+                    lprintf("AST", LOGTYPE_DEBUG, "Trying to find expression between tokens %d and %d\n", arg_start, arg_end);
                     basic_parse_to_ast_between_onlyexpr(ptree, fn_call_node, arg_start, arg_end);
                     lprintf("AST", LOGTYPE_DEBUG, "End of function call \"%s\"\n", fn_call_node->data.token.kw);
                     break;
@@ -518,6 +524,7 @@ int basic_parse_form_function(BASICParseTree *ptree, ASTNode *root, int parse_fr
                 if (scope_level == 1) {
                     arg_end = *parse_new_pos;
                     lprintf("AST", LOGTYPE_DEBUG, "Function argument parse:\n");
+                    lprintf("AST", LOGTYPE_DEBUG, "Trying to find expression between tokens %d and %d\n", arg_start, arg_end);
                     basic_parse_to_ast_between_onlyexpr(ptree, fn_call_node, arg_start, arg_end);
                     arg_start = (*parse_new_pos)+1;
                     lprintf("AST", LOGTYPE_DEBUG, "Function argument parse done\n");

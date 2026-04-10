@@ -1,8 +1,8 @@
 
-#include "ast.h"
+#include "basic/ast.h"
 #include "utils.h"
 
-//Standard libraries
+// Standard libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,8 +21,8 @@ ASTNode *ast_create_node() {
     return node;
 }
 
-//Adds a node as a child to the given parent node. If the parent has children
-//then it sets it as the child's last sibling node's sibling.
+// Adds a node as a child to the given parent node. If the parent has children
+// then it sets it as the child's last sibling node's sibling.
 void ast_append_child(ASTNode *parent, ASTNode *node) {
     if (parent == NULL || node == NULL) return;
     if (parent->child == NULL)
@@ -42,18 +42,18 @@ void ast_delete_node(ASTNode *node) {
 void ast_delete_children_cascade(ASTNode *root) {
     if (root == NULL) return;
     
-    //Find child node
+    // Find child node
     ASTNode *ptr = root->child;
     if (ptr == NULL) return; 
 
-    //Iterate through it's siblings
+    // Iterate through it's siblings
     while (ptr != NULL) {
         ASTNode *next = ptr->next;
-        //Delete children nodes recursively
+        // Delete children nodes recursively
         ast_delete_children_cascade(ptr);
-        //Delete current node
+        // Delete current node
         ast_delete_node(ptr);
-        //Go to next sibling
+        // Go to next sibling
         ptr = next;
     }
 }
@@ -128,7 +128,7 @@ void ast_display(ASTNode *node) {
     ast_display_level(node, 0);
 }
 
-//Converts the given data to a string representation. Must pass an adequately large buffer 
+// Converts the given data to a string representation. Must pass an adequately large buffer 
 void ast_data_as_string(ASTNodeData ast_data, char *buffer) {
     switch (ast_data.token_type) {
     case DTYPE_STR: strcpy(buffer, ast_data.token.literal.str); break;
@@ -221,61 +221,61 @@ int ast_evaluate_unary(ASTOperator op, ASTNodeData operand, ASTNodeData *result)
     return error_code;
 }
 
-//Calculates operation result of a binary operator
+// Calculates operation result of a binary operator
 int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeData *result) {
     int error_code = 0;
     *result = ASTVOID;
 
-    //TODO: This could need some refactoring :)
+    // TODO: This could need some refactoring :)
     switch (op) {
     case OP_ADD:
     {
-        //Adding different types will convert it
+        // Adding different types will convert it
         switch (a.token_type) {
         case DTYPE_NUM:
-            //Add a integer number to something
+            // Add a integer number to something
             if (b.token_type == DTYPE_NUM) {
-                //INT + INT -> INT
+                // INT + INT -> INT
                 result->token.literal.num = a.token.literal.num + b.token.literal.num;
                 result->token_type = DTYPE_NUM;
             } else if (b.token_type == DTYPE_FLT) {
-                //INT + FLOAT -> FLOAT
+                // INT + FLOAT -> FLOAT
                 result->token.literal.flt = (float)a.token.literal.num + b.token.literal.flt;
                 result->token_type = DTYPE_FLT;
             } else if (b.token_type == DTYPE_STR) {
-				//INT + STR -> concatenated STR (string representation of int)
+				// INT + STR -> concatenated STR (string representation of int)
 				sprintf(result->token.literal.str, "%d%s", a.token.literal.num, b.token.literal.str);
                 result->token_type = DTYPE_STR;
 			} else error_code = 1;
             break;
         case DTYPE_FLT:
-            //Add a floating number to something
+            // Add a floating number to something
             if (b.token_type == DTYPE_FLT) {
-                //FLOAT + FLOAT -> FLOAT
+                // FLOAT + FLOAT -> FLOAT
                 result->token.literal.flt = a.token.literal.flt + b.token.literal.flt;
                 result->token_type = DTYPE_FLT;
             } else if (b.token_type == DTYPE_NUM) {
-                //FLOAT + INT -> FLOAT
+                // FLOAT + INT -> FLOAT
                 result->token.literal.flt = a.token.literal.flt + (float)b.token.literal.num;
                 result->token_type = DTYPE_FLT;
             } else if(b.token_type == DTYPE_STR) {
-				//STR + FLOAT -> concatenated STR (string representation of float)
+				// STR + FLOAT -> concatenated STR (string representation of float)
 				sprintf(result->token.literal.str, "%f%s", a.token.literal.flt, b.token.literal.str);
                 result->token_type = DTYPE_STR;
 			} else error_code = 1;
             break;
         case DTYPE_STR:
             if (b.token_type == DTYPE_STR) {
-                //STR + STR -> concatenated STR
+                // STR + STR -> concatenated STR
                 strcpy(result->token.literal.str, a.token.literal.str);
                 strcat(result->token.literal.str, b.token.literal.str);
                 result->token_type = DTYPE_STR;
             } else if (b.token_type == DTYPE_NUM) {
-                //STR + INT -> concatenated STR (string representation of int)
+                // STR + INT -> concatenated STR (string representation of int)
                 sprintf(result->token.literal.str, "%s%d", a.token.literal.str, b.token.literal.num);
                 result->token_type = DTYPE_STR;
             } else if (b.token_type == DTYPE_FLT) {
-                //STR + FLOAT -> concatenated STR (string representation of float)
+                // STR + FLOAT -> concatenated STR (string representation of float)
                 sprintf(result->token.literal.str, "%s%f", a.token.literal.str, b.token.literal.flt);
                 result->token_type = DTYPE_STR;
             } else error_code = 1;
@@ -289,21 +289,21 @@ int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeDat
     {
         if (a.token_type == DTYPE_NUM) {
             if (b.token_type == DTYPE_NUM) {
-                //INT - INT -> INT
+                // INT - INT -> INT
                 result->token.literal.num = a.token.literal.num - b.token.literal.num;
                 result->token_type = DTYPE_NUM;
             } else if (b.token_type == DTYPE_FLT) {
-                //INT - FLOAT -> FLOAT
+                // INT - FLOAT -> FLOAT
                 result->token.literal.flt = (float)a.token.literal.num - b.token.literal.flt;
                 result->token_type = DTYPE_FLT;
             } else error_code = 1;
         } else if (a.token_type == DTYPE_FLT) {
             if (b.token_type == DTYPE_FLT) {
-                //FLOAT - FLOAT -> FLOAT
+                // FLOAT - FLOAT -> FLOAT
                 result->token.literal.flt = a.token.literal.flt - b.token.literal.flt;
                 result->token_type = DTYPE_FLT;
             } else if (b.token_type == DTYPE_NUM) {
-                //FLOAT - INT -> FLOAT
+                // FLOAT - INT -> FLOAT
                 result->token.literal.flt = a.token.literal.flt - (float)b.token.literal.num;
                 result->token_type = DTYPE_FLT;
             } else error_code = 1;
@@ -313,21 +313,21 @@ int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeDat
     case OP_MUL:
         if (a.token_type == DTYPE_NUM) {
             if (b.token_type == DTYPE_NUM) {
-                //INT * INT -> INT
+                // INT * INT -> INT
                 result->token.literal.num = a.token.literal.num * b.token.literal.num;
                 result->token_type = DTYPE_NUM;
             } else if (b.token_type == DTYPE_FLT) {
-                //INT * FLOAT -> FLOAT
+                // INT * FLOAT -> FLOAT
                 result->token.literal.flt = (float)a.token.literal.num * b.token.literal.flt;
                 result->token_type = DTYPE_FLT;
             } else error_code = 1;
         } else if (a.token_type == DTYPE_FLT) {
             if (b.token_type == DTYPE_FLT) {
-                //FLOAT * FLOAT -> FLOAT
+                // FLOAT * FLOAT -> FLOAT
                 result->token.literal.flt = a.token.literal.flt * b.token.literal.flt;
                 result->token_type = DTYPE_FLT;
             } else if (b.token_type == DTYPE_NUM) {
-                //FLOAT * INT -> FLOAT
+                // FLOAT * INT -> FLOAT
                 result->token.literal.flt = a.token.literal.flt * (float)b.token.literal.num;
                 result->token_type = DTYPE_FLT;
             } else error_code = 1;
@@ -340,28 +340,28 @@ int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeDat
         }
         if (a.token_type == DTYPE_NUM) {
             if (b.token_type == DTYPE_NUM) {
-                //INT / INT -> INT
+                // INT / INT -> INT
                 result->token.literal.num = a.token.literal.num / b.token.literal.num;
                 result->token_type = DTYPE_NUM;
             } else if (b.token_type == DTYPE_FLT) {
-                //INT / FLOAT -> FLOAT
+                // INT / FLOAT -> FLOAT
                 result->token.literal.flt = (float)a.token.literal.num / b.token.literal.flt;
                 result->token_type = DTYPE_FLT;
             } else error_code = 1;
         } else if (a.token_type == DTYPE_FLT) {
             if (b.token_type == DTYPE_FLT) {
-                //FLOAT / FLOAT -> FLOAT
+                // FLOAT / FLOAT -> FLOAT
                 result->token.literal.flt = a.token.literal.flt / b.token.literal.flt;
                 result->token_type = DTYPE_FLT;
             } else if (b.token_type == DTYPE_NUM) {
-                //FLOAT / INT -> FLOAT
+                // FLOAT / INT -> FLOAT
                 result->token.literal.flt = a.token.literal.flt / (float)b.token.literal.num;
                 result->token_type = DTYPE_FLT;
             } else error_code = 1;
         } else error_code = 1;
         break;
     case OP_MOD:
-        //Modulo is only INT % INT
+        // Modulo is only INT % INT
         if (a.token_type == DTYPE_NUM) {
             if (b.token_type == DTYPE_NUM) {
                 if (b.token.literal.num == 0) {
@@ -377,7 +377,7 @@ int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeDat
         result->token_type = DTYPE_NUM;
         switch (a.token_type) {
         case DTYPE_NUM:
-            //Cast float to integer
+            // Cast float to integer
             if (b.token_type == DTYPE_NUM)
                 result->token.literal.num = a.token.literal.num == b.token.literal.num;
             else if (b.token_type == DTYPE_FLT)
@@ -386,7 +386,7 @@ int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeDat
                 result->token.literal.num = 0;
             break;
         case DTYPE_FLT:
-            //Compare two floats directly
+            // Compare two floats directly
             if (b.token_type == DTYPE_FLT)
                 result->token.literal.num = a.token.literal.flt == b.token.literal.flt;
             else if (b.token_type == DTYPE_FLT)
@@ -395,7 +395,7 @@ int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeDat
                 result->token.literal.num = 0;
             break;
         case DTYPE_STR:
-            //Compare if two strings are equal
+            // Compare if two strings are equal
             if (b.token_type == DTYPE_STR)
                 result->token.literal.num = strcmp(a.token.literal.str, b.token.literal.str) == 0;
             else
@@ -453,13 +453,13 @@ int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeDat
     return error_code;
 }
 
-//Calculates Greater (in value) of the two given data
+// Calculates Greater (in value) of the two given data
 int ast_get_greater(ASTNodeData a, ASTNodeData b, ASTNodeData *result) {
     int error_code = 0;
     *result = ASTVOID;
     ASTNodeData bigger;
 
-    //Figure out which is the larger operand
+    // Figure out which is the larger operand
     switch (a.token_type) {
     case DTYPE_NUM:
         switch (b.token_type) {
@@ -513,13 +513,13 @@ int ast_get_greater(ASTNodeData a, ASTNodeData b, ASTNodeData *result) {
     return error_code;
 }
 
-//Calculates Lesser (in value) of the two given data
+// Calculates Lesser (in value) of the two given data
 int ast_get_lesser(ASTNodeData a, ASTNodeData b, ASTNodeData *result) {
     int error_code = 0;
     *result = ASTVOID;
     ASTNodeData smaller;
 
-    //Figure out which is the larger operand
+    // Figure out which is the larger operand
     switch (a.token_type) {
     case DTYPE_NUM:
         switch (b.token_type) {

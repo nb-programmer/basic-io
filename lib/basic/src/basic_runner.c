@@ -1,16 +1,17 @@
-
-#include "basic.h"
-#include "ast.h"
-#include "stack.h"
+#include <data_structures/stack.h>
+#include "basic/basic.h"
+#include "basic/ast.h"
 #include "utils.h"
 
-//Standard libraries
+#define _USE_MATH_DEFINES
+
+// Standard libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-//This code will directly interpret from the abstract syntax tree
+// This code will directly interpret from the abstract syntax tree
 
 BASICVariable *basic_find_variable(BASICRuntime *runtime, char var_name[]) {
     if (runtime->variables == NULL) return NULL;
@@ -59,7 +60,7 @@ void basic_set_variable(BASICRuntime *runtime, char var_name[], ASTNodeData valu
     memcpy(&(var->value), &value, sizeof(ASTNodeData));
 }
 
-//Return a function pointer to a BASIC function if it exists
+// Return a function pointer to a BASIC function if it exists
 basic_function basic_decode_function(char fn_name[]) {
     if (strcasecmp(fn_name, "print") == 0)
         return _basic_fn_print;
@@ -93,7 +94,7 @@ ASTNodeData basic_evaluate_operation(BASICRuntime *runtime, ASTNode *expression)
         break;
     case OPTYPE_BINARY:
         if (op == OP_ASSIGN) {
-            //Variable assignment is done directly
+            // Variable assignment is done directly
             basic_var_assignment(runtime, operand_ptr);
         } else {
             operands[0] = basic_evaluate_node(runtime, operand_ptr);
@@ -147,7 +148,7 @@ ASTNodeData basic_evaluate_node(BASICRuntime *runtime, ASTNode *node) {
     case AST_OPERATION:
         return basic_evaluate_operation(runtime, node);
     case AST_EXPRESSION:
-        //Expression within an expression requires another node to join them
+        // Expression within an expression requires another node to join them
         return basic_evaluate_node(runtime, node->child);
     case AST_CONDITION:
         return basic_evaluate_node(runtime, node->child);
@@ -171,16 +172,16 @@ void basic_var_assignment(BASICRuntime *runtime, ASTNode *args) {
         return;
     }
 
-    //Assign variable the evaluated result, LHS <- RHS
+    // Assign variable the evaluated result, LHS <- RHS
     basic_set_variable(runtime, var_name, basic_evaluate_node(runtime, val_to_assign));
 }
 
-//Executes a BASICProgram object (inside the runtime)
+// Executes a BASICProgram object (inside the runtime)
 ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc) {
-    //'pc' is our "program counter"
-    //'runtime' stores all variables and their values, and such data for running the program
+    // 'pc' is our "program counter"
+    // 'runtime' stores all variables and their values, and such data for running the program
 
-    //Executes the current sequence of instructions till end of list
+    // Executes the current sequence of instructions till end of list
     while (!runtime->halt) {
         ASTNode *current_pc = pc;
 
@@ -194,25 +195,25 @@ ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc) {
                 continue;
             }
         } else {
-            //Increment Program counter to next instruction
+            // Increment Program counter to next instruction
             pc = pc->next;
         }
 
         switch (current_pc->type) {
         case AST_PROGRAM_SEQUENCE:
-            //Beginning of the program. Run from first instruction and return
+            // Beginning of the program. Run from first instruction and return
             pc = current_pc->child;
             break;
-        //Function call which is not expecting a return value
+        // Function call which is not expecting a return value
         case AST_FUNC_CALL:
-        //Expression directly given as a statement (eg. Variable assignment)
+        // Expression directly given as a statement (eg. Variable assignment)
         case AST_EXPRESSION:
         case AST_OPERATION:
             basic_evaluate_node(runtime, current_pc);
             break;
         case AST_KEYWORD:
         {
-            //If needed, where to jump to, or where to run sub-routine block
+            // If needed, where to jump to, or where to run sub-routine block
             ASTNode *next_pc = NULL;
             KeywordAction kw_action = basic_evaluate_keyword_block(runtime, current_pc, &next_pc);
             switch (kw_action) {
@@ -249,7 +250,7 @@ ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc) {
     return ASTVOID;
 }
 
-//Creates a runtime environment for running the basic interpreter
+// Creates a runtime environment for running the basic interpreter
 BASICRuntime *basic_create_runtime(BASICProgram *program) {
     BASICRuntime *runtime;
     runtime = (BASICRuntime *)malloc(sizeof(BASICRuntime));
@@ -285,7 +286,7 @@ void basic_init_constants(BASICRuntime *runtime) {
     basic_set_variable(runtime, "RANDOM_MAX", rand_max);
 }
 
-//Simple print function
+// Simple print function
 ASTNodeData _basic_fn_print(BASICRuntime *runtime, ASTNode *args) {
     ASTNode *arg = args;
     char temp[512] = { 0 };
@@ -294,17 +295,17 @@ ASTNodeData _basic_fn_print(BASICRuntime *runtime, ASTNode *args) {
         ast_data_as_string(value, temp);
         printf("%s", temp);
         arg = arg->next;
-        //Space separated arguments
+        // Space separated arguments
         if (arg != NULL) printf(" ");
     }
     printf("\n");
     fflush(stdout);
 
-    //No return value
+    // No return value
     return ASTVOID;
 }
 
-//Function to find maximum value from given parameters
+// Function to find maximum value from given parameters
 ASTNodeData _basic_fn_max(BASICRuntime *runtime, ASTNode *args) {
     ASTNode *arg = args;
     ASTNodeData ret_val = ASTVOID;
@@ -316,7 +317,7 @@ ASTNodeData _basic_fn_max(BASICRuntime *runtime, ASTNode *args) {
     return ret_val;
 }
 
-//Function to find minimum value from given parameters
+// Function to find minimum value from given parameters
 ASTNodeData _basic_fn_min(BASICRuntime *runtime, ASTNode *args) {
     ASTNode *arg = args;
     ASTNodeData ret_val = ASTVOID;
@@ -329,21 +330,19 @@ ASTNodeData _basic_fn_min(BASICRuntime *runtime, ASTNode *args) {
     return ret_val;
 }
 
-//Sleep for given number of seconds (can be fraction)
+// Sleep for given number of seconds (can be fraction)
 ASTNodeData _basic_fn_sleep(BASICRuntime *runtime, ASTNode *arg) {
-    //Exit if no argument passed
+    // Exit if no argument passed
     if (arg == NULL) return ASTVOID;
-    //Evaluate the expression in the given argument
+    // Evaluate the expression in the given argument
     ASTNodeData value = basic_evaluate_node(runtime, arg);
-    //Convert to float
+    // Convert to float
     float sleep_seconds = ast_data_to_flt(value);
-    //Calculate the duration in terms microseconds (x 10^6)
-    unsigned long long duration = (unsigned long long)(sleep_seconds * 1e6);
-    system_usleep(duration);
+    system_sleep(sleep_seconds);
     return (ASTNodeData) {0, DTYPE_NUM};
 }
 
-//Convert given integer / float to integer
+// Convert given integer / float to integer
 ASTNodeData _basic_fn_toint(BASICRuntime *runtime, ASTNode *arg) {
     if (arg == NULL) {
         lprintf("EXEC", LOGTYPE_ERROR, "Error: Expected one argument to convert to integer, none found\n");
@@ -357,7 +356,7 @@ ASTNodeData _basic_fn_toint(BASICRuntime *runtime, ASTNode *arg) {
     return value;
 }
 
-//Convert given integer / float to float
+// Convert given integer / float to float
 ASTNodeData _basic_fn_toflt(BASICRuntime *runtime, ASTNode *arg) {
     if (arg == NULL) {
         lprintf("EXEC", LOGTYPE_ERROR, "Error: Expected one argument to convert to float, none found\n");
@@ -424,7 +423,7 @@ KeywordAction basic_eval_kw_if(BASICRuntime *runtime, ASTNode *pc, ASTNode **nex
 
     ASTNode *cond_node = pc->child;
   
-    //Checking stuff... so boring
+    // Checking stuff... so boring
     if (cond_node == NULL) {
         lprintf("EXEC", LOGTYPE_ERROR, "No condition given to the IF block\n");
         runtime->halt = 1;
@@ -455,11 +454,11 @@ KeywordAction basic_eval_kw_if(BASICRuntime *runtime, ASTNode *pc, ASTNode **nex
         }
     }
 
-    //Now we can do the actual evaluation
+    // Now we can do the actual evaluation
     ASTNodeData condition_evaluated = basic_evaluate_node(runtime, cond_node);
     int contition_val = ast_data_to_int(condition_evaluated);
 
-    //Who would've guessed evaulation of IF statements can be done with an IF statement
+    // Who would've guessed evaulation of IF statements can be done with an IF statement
     if (contition_val) {
         *nextpc = true_path;
         return KW_JMP_AND_RET_NEXT;
@@ -485,7 +484,7 @@ KeywordAction basic_eval_kw_while(BASICRuntime *runtime, ASTNode *pc, ASTNode **
 
     ASTNode *cond_node = pc->child;
   
-    //Checking stuff... so boring
+    // Checking stuff... so boring
     if (cond_node == NULL) {
         lprintf("EXEC", LOGTYPE_ERROR, "No condition given to the IF block\n");
         runtime->halt = 1;
@@ -503,11 +502,11 @@ KeywordAction basic_eval_kw_while(BASICRuntime *runtime, ASTNode *pc, ASTNode **
         return KW_DO_NOTHING;
     }
 
-    //Now we can do the actual evaluation
+    // Now we can do the actual evaluation
     ASTNodeData condition_evaluated = basic_evaluate_node(runtime, cond_node);
     int contition_val = ast_data_to_int(condition_evaluated);
 
-    //Jump to body and then return back to condition check
+    // Jump to body and then return back to condition check
     if (contition_val) {
         *nextpc = true_path;
         return KW_JMP_AND_RET_CURR;

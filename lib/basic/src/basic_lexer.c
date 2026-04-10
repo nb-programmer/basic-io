@@ -1,5 +1,5 @@
 
-#include "basic.h"
+#include "basic/basic.h"
 #include "utils.h"
 
 #include <stdio.h>
@@ -9,31 +9,31 @@
 
 /* BASIC TOKENIZER / LEXER */
 
-//Known patterns to translate to a token list
+// Known patterns to translate to a token list
 
-//Keywords
-//Make sure to update the KEYWORD_IDX_* entry in basic.h
+// Keywords
+// Make sure to update the KEYWORD_IDX_* entry in basic.h
 char *PARSE_KEYWORDS[] = {"WHILE", "IF", "THEN", "ELSE", "END", "GOTO", NULL};
 int PARSE_KW_COUNT = 6;
 
-//Booleans: 0, 1
+// Booleans: 0, 1
 char *PARSE_BOOLEAN[] = {"FALSE", "TRUE"};
 
-//Operators
+// Operators
 char PARSE_OPERATORS[] = {'=', '+', '-', '*', '/', '<', '>', '!', '%'};
 
-//Separator
+// Separator
 char PARSE_SEPARATOR[] = {'(', ')', ','};
 
-//Whitespace
-//<newline> is a separator of program statements
+// Whitespace
+// <newline> is a separator of program statements
 char PARSE_WS_CHAR[] = {' ', '\t', '\n'};
 
-//Function to insert new token into the token array
+// Function to insert new token into the token array
 void basic_insert_token(BASICParseTree *ptree, BASICToken tok) {
     int new_token_size = ptree->tokens_length + 1;
     if (ptree->tokens == NULL) {
-        //In case of garbage value
+        // In case of garbage value
         ptree->tokens_length = 0;
         new_token_size = 1;
 
@@ -50,7 +50,7 @@ void basic_insert_token(BASICParseTree *ptree, BASICToken tok) {
     ptree->tokens_length = new_token_size;
 }
 
-//Returns 1 if given symbol is present in the given list of symbols
+// Returns 1 if given symbol is present in the given list of symbols
 int token_char_contains(char *list, int list_size, char symbol) {
     for (int i=0;i<list_size;i++)
         if (symbol == list[i])
@@ -58,9 +58,9 @@ int token_char_contains(char *list, int list_size, char symbol) {
     return 0;
 }
 
-//Returns 1 if the given token is a keyword
+// Returns 1 if the given token is a keyword
 int token_is_kw(char *token) {
-    //Check for each keyword for match
+    // Check for each keyword for match
     for (int i=0; i<PARSE_KW_COUNT; i++) {
         if (PARSE_KEYWORDS[i] == NULL) break;
         if (strcasecmp(PARSE_KEYWORDS[i], token) == 0)
@@ -69,17 +69,17 @@ int token_is_kw(char *token) {
     return 0;
 } 
 
-//Returns 1 if the given token is a boolean (True / False)
+// Returns 1 if the given token is a boolean (True / False)
 int token_is_bool(char *token) {
     return (strcasecmp(PARSE_BOOLEAN[0], token) == 0 || strcasecmp(PARSE_BOOLEAN[1], token) == 0);
 }
 
-//Gives line number and character position in the given program string
+// Gives line number and character position in the given program string
 void program_whereis(char *program, char *current_position, char *buffer) {
 
 }
 
-//Converts words/symbols to tokens. Also called "Lexer"
+// Converts words/symbols to tokens. Also called "Lexer"
 int basic_tokenize(BASICProgram *program) {
     BASICParseTree *ptree = &(program->program_tokens);
     char *tok_ptr, *tok_start;
@@ -87,32 +87,32 @@ int basic_tokenize(BASICProgram *program) {
     int tok_len = 0;
 
     for (tok_ptr = program->program_source; *tok_ptr != '\0'; tok_ptr++) {
-        //Check for digit
+        // Check for digit
         if (isdigit(*tok_ptr)) {
             BASICToken tk_num;
-            //Beginning of a number
+            // Beginning of a number
             tok_start = tok_ptr;
-            //Check if number is negative
+            // Check if number is negative
             if (*(tok_start-1) == '-') tok_start--;
-            //Keep searching till we run out of digits
+            // Keep searching till we run out of digits
             while ((isdigit(*tok_ptr) || *tok_ptr == '.') && *tok_ptr != '\0')
                 tok_ptr++;
-            //Copy the digits to a buffer
+            // Copy the digits to a buffer
             int num_size = MIN(tok_ptr - tok_start, sizeof(StringLiteral) - 1);
             strncpy(tk_num.token, tok_start, num_size);
             tk_num.token[num_size] = '\0';
             tk_num.token_type = TOKEN_NUM;
             tk_num.token_at = tok_start;
-            //Go back one symbol as the above loop moved past the current token
+            // Go back one symbol as the above loop moved past the current token
             tok_ptr--;
             basic_insert_token(ptree, tk_num);
             lprintf("LEXER", LOGTYPE_DEBUG, "Found number %s\n", tk_num.token);
             continue;
         }
 
-        //Check for operators
+        // Check for operators
         if (token_char_contains(PARSE_OPERATORS, sizeof(PARSE_OPERATORS), *tok_ptr)) {
-            //Skip if this is a negative number sign
+            // Skip if this is a negative number sign
             if (*tok_ptr == '-' && isdigit(*(tok_ptr+1))) continue;
             BASICToken tk_op;
             tk_op.token[0] = *tok_ptr; tk_op.token[1] = '\0';
@@ -123,7 +123,7 @@ int basic_tokenize(BASICProgram *program) {
             continue;
         }
 
-        //Check for whitespace
+        // Check for whitespace
         if (token_char_contains(PARSE_WS_CHAR, sizeof(PARSE_WS_CHAR), *tok_ptr)) {
             BASICToken tk_ws;
             tk_ws.token_type = TOKEN_WHITESPACE;
@@ -133,32 +133,32 @@ int basic_tokenize(BASICProgram *program) {
             lprintf("LEXER", LOGTYPE_DEBUG, "Found whitespace\n");
             continue;
         } else {
-            //Identifier (letters and underscore, numbers afterwards) or keyword
+            // Identifier (letters and underscore, numbers afterwards) or keyword
             if (isalpha(*tok_ptr) || *tok_ptr == '_') {
                 BASICToken tk_identifier;
                 tok_start = tok_ptr;
                 while ((isalpha(*tok_ptr) || *tok_ptr == '_' || isdigit(*tok_ptr)) && *tok_ptr != '\0')
                     tok_ptr++;
-                //Copy the name to a buffer
+                // Copy the name to a buffer
                 int id_size = MIN(tok_ptr - tok_start, sizeof(StringLiteral) - 1);
                 strncpy(tk_identifier.token, tok_start, id_size);
                 tk_identifier.token[id_size] = '\0';
                 tk_identifier.token_at = tok_start;
                 tok_ptr--;
 
-                //Check if what we found is a keyword
+                // Check if what we found is a keyword
                 if (token_is_kw(tk_identifier.token)) {
-                    //It is a keyword
+                    // It is a keyword
                     tk_identifier.token_type = TOKEN_KEYWORD;
                     basic_insert_token(ptree, tk_identifier);
                     lprintf("LEXER", LOGTYPE_DEBUG, "Found keyword \"%s\"\n", tk_identifier.token);
                 } else if (token_is_bool(tk_identifier.token)) {
-                    //It is a boolean
+                    // It is a boolean
                     tk_identifier.token_type = TOKEN_BOOL;
                     basic_insert_token(ptree, tk_identifier);
                     lprintf("LEXER", LOGTYPE_DEBUG, "Found boolean %s\n", tk_identifier.token);
                 } else {
-                    //It is an identifer
+                    // It is an identifer
                     tk_identifier.token_type = TOKEN_IDENTIFIER;
                     basic_insert_token(ptree, tk_identifier);
                     lprintf("LEXER", LOGTYPE_DEBUG, "Found identifier \"%s\"\n", tk_identifier.token);
@@ -167,10 +167,10 @@ int basic_tokenize(BASICProgram *program) {
                 continue;
             }
 
-            //Check for string literal
+            // Check for string literal
             if (*tok_ptr == '"') {
                 BASICToken tk_str;
-                //Start string the next character from double-quote
+                // Start string the next character from double-quote
                 tok_start = ++tok_ptr;
                 while (*tok_ptr != '"' && *tok_ptr != '\0')
                     tok_ptr++;
@@ -180,7 +180,7 @@ int basic_tokenize(BASICProgram *program) {
                     return 1;
                 }
 
-                //Copy the string to a buffer
+                // Copy the string to a buffer
                 int id_size = MIN(tok_ptr - tok_start, sizeof(StringLiteral) - 1);
                 strncpy(tk_str.token, tok_start, id_size);
                 tk_str.token[id_size] = '\0';
@@ -191,7 +191,7 @@ int basic_tokenize(BASICProgram *program) {
                 continue;
             }
 
-            //Check for separator
+            // Check for separator
             if (token_char_contains(PARSE_SEPARATOR, sizeof(PARSE_SEPARATOR), *tok_ptr)) {
                 BASICToken tk_sp;
                 tk_sp.token[0] = *tok_ptr; tk_sp.token[1] = '\0';
