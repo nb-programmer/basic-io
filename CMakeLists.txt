@@ -9,7 +9,7 @@ project(
 )
 
 add_subdirectory("lib/basic/")
-add_subdirectory("lib/basic_system/")
+add_subdirectory("lib/basic_system_interface/")
 add_subdirectory("lib/data_structures/")
 
 # Build the main project executable

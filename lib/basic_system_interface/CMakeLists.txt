@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # Configure project
 project(
-    basic_system
+    basic_system_interface
     DESCRIPTION "System interface for basic interpreter"
     LANGUAGES C CXX
     VERSION 1.0

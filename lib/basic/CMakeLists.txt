@@ -24,11 +24,11 @@ add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 # Add some preprocessor defines
 target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 
-add_dependencies(${PROJECT_NAME} basic_system data_structures)
+add_dependencies(${PROJECT_NAME} basic_system_interface data_structures)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        basic_system::basic_system
+        basic_system_interface::basic_system_interface
         data_structures::data_structures
 )
 
