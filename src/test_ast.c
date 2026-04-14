@@ -1,6 +1,7 @@
 
 // Standard libraries
 #include <string.h>
+#include <stdio.h>
 
 #include <basic/ast.h>
 #include <basic/basic.h>
