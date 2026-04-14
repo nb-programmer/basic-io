@@ -1,6 +1,7 @@
 
 #include "http.h"
 #include "utils.h"
+#include "platform/platform.h"
 
 // Standard libraries
 #include <stdlib.h>

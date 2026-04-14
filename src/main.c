@@ -21,6 +21,7 @@ https:// en.cppreference.com/w/c/language/operator_precedence
 
 #include "utils.h"
 #include "http.h"
+#include "platform/platform.h"
 #include "tcpserver.h"
 #include <basic/ast.h>
 #include <basic/basic.h>
