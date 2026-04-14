@@ -1,13 +1,13 @@
 
-#include "stack.h"
+#include "data_structures/stack.h"
 
 #include <stdlib.h>
 
 StackNode *stack_create_node() {
-    //Allocate a new node
+    // Allocate a new node
 	StackNode *new_node = (StackNode *)malloc(sizeof(StackNode));
 
-	//See if we actually got the new node
+	// See if we actually got the new node
 	if (new_node == NULL)
 		return NULL;
 

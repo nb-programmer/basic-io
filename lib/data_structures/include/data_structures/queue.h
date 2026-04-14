@@ -1,5 +1,4 @@
-#ifndef _QUEUE_H
-#define _QUEUE_H
+#pragma once
 
 typedef struct _q_node {
     void *data;
@@ -15,5 +14,3 @@ void queue_delete_node(QueueNode *node);
 void queue_clear(Queue *queue);
 void queue_enqueue(Queue *queue, QueueNode *node);
 QueueNode *queue_dequeue(Queue *queue);
-
-#endif

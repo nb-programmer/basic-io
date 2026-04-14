@@ -1,5 +1,4 @@
-#ifndef _AST_H
-#define _AST_H
+#pragma once
 
 typedef char StringLiteral[101];
 
@@ -14,11 +13,11 @@ typedef union {
 typedef enum {
     OP_NONE,
 
-    //Unary
+    // Unary
     OP_NOT,
     OP_NEGATE,
 
-    //Binary
+    // Binary
     OP_ADD,
     OP_SUB,
     OP_MUL,
@@ -29,7 +28,7 @@ typedef enum {
     OP_GT,
     OP_ASSIGN,
 
-    //Separator, only used during parsing
+    // Separator, only used during parsing
     OP_OPEN_PAREN,
     OP_CLOSE_PAREN
 } ASTOperator;
@@ -43,17 +42,17 @@ typedef enum {
 
 typedef union {
     int generic;
-    //For keyword / operation / function call
+    // For keyword / operation / function call
     StringLiteral kw;
 
-    //For a variable name
+    // For a variable name
     StringLiteral variable_name;
 
-    //token_type is used for following
+    // token_type is used for following
 
-    //For a literal number/string
+    // For a literal number/string
     Literal literal;
-    //For ALU operation
+    // For ALU operation
     ASTOperator op;
 } ASTData;
 
@@ -74,17 +73,17 @@ typedef enum {
     AST_NONE,
     AST_PROGRAM_SEQUENCE,
 
-    //Operation
+    // Operation
     AST_KEYWORD,
     AST_EXPRESSION,
     AST_OPERATION,
     AST_CONDITION,
 
-    //Data
+    // Data
     AST_IMMEDIATE,
     AST_VARIABLE,
 
-    //Call to function
+    // Call to function
     AST_FUNC_CALL,
 } ASTNodeType;
 
@@ -96,12 +95,12 @@ typedef struct _ast_node {
     struct _ast_node *child;
 } ASTNode;
 
-//Void data
+// Void data
 extern ASTNodeData ASTVOID;
 
 void ast_display_level(ASTNode *node, int level);
 
-//Public functions
+// Public functions
 ASTNode *ast_create_node();
 void ast_append_child(ASTNode *parent, ASTNode *node);
 void ast_delete_node(ASTNode *node);
@@ -117,5 +116,3 @@ int ast_evaluate_unary(ASTOperator op, ASTNodeData operand, ASTNodeData *result)
 int ast_evaluate_binary(ASTOperator op, ASTNodeData a, ASTNodeData b, ASTNodeData *result);
 int ast_get_greater(ASTNodeData a, ASTNodeData b, ASTNodeData *result);
 int ast_get_lesser(ASTNodeData a, ASTNodeData b, ASTNodeData *result);
-
-#endif
