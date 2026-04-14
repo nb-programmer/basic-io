@@ -2,6 +2,8 @@
 
 #ifdef __linux__
 #include <unistd.h>
+#include <string.h>
+#include <stdio.h>
 
 #define STDOUT_FD 1
 
