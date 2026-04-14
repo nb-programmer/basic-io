@@ -42,16 +42,6 @@ https://en.cppreference.com/w/c/language/operator_precedence
 // Comment to print output to console only
 #define OUTPUT_CLIENT_REDIRECT
 
-// #define TEST_AST
-// #define TEST_PARSE
-
-// Test AST builder functions
-#ifdef TEST_AST
-void test_build_hello(ASTNode *program_sequence);
-void test_build_var_print(ASTNode *program_sequence);
-void test_build_expr_print(ASTNode *program_sequence);
-#endif
-
 // Which TCP Port to start listening on
 const int LISTEN_PORT = 1111;
 
@@ -273,44 +263,6 @@ int main(int argc, char *argv[]) {
     // Initialize an new seed based on current time
     srand(time(0));
 
-#ifdef TEST_AST
-    BASICProgram *basic_program;
-    basic_program = basic_create_program();
-
-    // test_build_hello(basic_program->program_sequence);
-    // test_build_var_print(basic_program->program_sequence);
-    test_build_expr_print(basic_program->program_sequence);
-    printf("AST node structure:\n");
-    ast_display(basic_program->program_sequence);
-    printf("[MAIN] Begin interpreting program...\n");
-
-    interpret_basic_program(basic_program);
-
-    basic_destroy_program(basic_program);
-#elif defined(TEST_PARSE)
-    // Simple linear expression test
-    const char test_prog[] = "PRINT(20 * 30 + 10)\nPRINT(10 + (10 - 1) + 10 - 1 / 2)";
-
-    // Simple IF clause test
-    const char test_prog_if[] = "X = TRUE\nIF X THEN\nPRINT(1)END\nPRINT(22)";
-    
-    // This one generates so many closing braces in the console, trippy!
-    const char test_prog_if_nested[] = "IF 1 THEN\nIF 0 THEN PRINT(1) END END\n";
-
-    const char test_prog_delay[] = "print(\"Test\")\nsleep(1)\nprint(\"Done\")\n";
-
-    BASICProgram *basic_program = basic_create_program();
-
-    // Place whatever program to test here
-    basic_program->program_source = test_prog_delay;
-
-    basic_tokenize(basic_program);
-    basic_parse_to_ast(basic_program);
-    printf("AST node structure:\n");
-    ast_display(basic_program->program_sequence);
-    interpret_basic_program(basic_program);
-    basic_destroy_program(basic_program);
-#else
     /* Main application code is here! */
     if (tcpserver_create(&sock_sv) != 0)
         return 1;
@@ -320,7 +272,6 @@ int main(int argc, char *argv[]) {
         return 1;
 
     tcpserver_close(&sock_sv);
-#endif
 
     return 0;
 }
