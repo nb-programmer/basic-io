@@ -4,95 +4,103 @@ typedef char StringLiteral[101];
 
 /* Abstract Syntax Tree */
 
-typedef union {
-    float flt;
-    int num;
-    StringLiteral str;
+typedef union
+{
+	float flt;
+	int num;
+	StringLiteral str;
 } Literal;
 
-typedef enum {
-    OP_NONE,
+typedef enum
+{
+	OP_NONE,
 
-    // Unary
-    OP_NOT,
-    OP_NEGATE,
+	// Unary
+	OP_NOT,
+	OP_NEGATE,
 
-    // Binary
-    OP_ADD,
-    OP_SUB,
-    OP_MUL,
-    OP_DIV,
-    OP_MOD,
-    OP_EQ,
-    OP_LT,
-    OP_GT,
-    OP_ASSIGN,
+	// Binary
+	OP_ADD,
+	OP_SUB,
+	OP_MUL,
+	OP_DIV,
+	OP_MOD,
+	OP_EQ,
+	OP_LT,
+	OP_GT,
+	OP_ASSIGN,
 
-    // Separator, only used during parsing
-    OP_OPEN_PAREN,
-    OP_CLOSE_PAREN
+	// Separator, only used during parsing
+	OP_OPEN_PAREN,
+	OP_CLOSE_PAREN
 } ASTOperator;
 
-typedef enum {
-    OPTYPE_NONE,
-    OPTYPE_UNARY,
-    OPTYPE_BINARY,
-    OPTYPE_TERNARY
+typedef enum
+{
+	OPTYPE_NONE,
+	OPTYPE_UNARY,
+	OPTYPE_BINARY,
+	OPTYPE_TERNARY
 } ASTOperatorType;
 
-typedef union {
-    int generic;
-    // For keyword / operation / function call
-    StringLiteral kw;
+typedef union
+{
+	int generic;
+	// For keyword / operation / function call
+	StringLiteral kw;
 
-    // For a variable name
-    StringLiteral variable_name;
+	// For a variable name
+	StringLiteral variable_name;
 
-    // token_type is used for following
+	// token_type is used for following
 
-    // For a literal number/string
-    Literal literal;
-    // For ALU operation
-    ASTOperator op;
+	// For a literal number/string
+	Literal literal;
+	// For ALU operation
+	ASTOperator op;
 } ASTData;
 
-typedef enum {
-    DTYPE_NONE,
-    DTYPE_STR,
-    DTYPE_NUM,
-    DTYPE_FLT,
-    DTYPE_SYMB
+typedef enum
+{
+	DTYPE_NONE,
+	DTYPE_STR,
+	DTYPE_NUM,
+	DTYPE_FLT,
+	DTYPE_SYMB
 } ASTDType;
 
-typedef struct {
-    ASTData token;
-    ASTDType token_type;
+typedef struct
+{
+	ASTData token;
+	ASTDType token_type;
 } ASTNodeData;
 
-typedef enum {
-    AST_NONE,
-    AST_PROGRAM_SEQUENCE,
+typedef enum
+{
+	AST_NONE,
+	AST_PROGRAM_SEQUENCE,
 
-    // Operation
-    AST_KEYWORD,
-    AST_EXPRESSION,
-    AST_OPERATION,
-    AST_CONDITION,
+	// Operation
+	AST_KEYWORD,
+	AST_EXPRESSION,
+	AST_OPERATION,
+	AST_CONDITION,
 
-    // Data
-    AST_IMMEDIATE,
-    AST_VARIABLE,
+	// Data
+	AST_IMMEDIATE,
+	AST_VARIABLE,
 
-    // Call to function
-    AST_FUNC_CALL,
+	// Call to function
+	AST_FUNC_CALL,
 } ASTNodeType;
 
-typedef struct _ast_node {
-    ASTNodeType type;
-    ASTNodeData data;
+typedef struct _ast_node
+{
+	ASTNodeType type;
+	ASTNodeData data;
 
-    struct _ast_node *next;
-    struct _ast_node *child;
+	struct _ast_node *next;
+	struct _ast_node *child;
 } ASTNode;
 
 // Void data

@@ -13,8 +13,8 @@ add_subdirectory("lib/basic_system_interface/")
 add_subdirectory("lib/data_structures/")
 
 # Build the main project executable
-add_executable(${CMAKE_PROJECT_NAME}
-    "src/main.c"
+add_executable(server
+    "src/http_server_main.c"
 
     "src/http.c"
     "src/http.h"
@@ -22,16 +22,24 @@ add_executable(${CMAKE_PROJECT_NAME}
     "src/tcpserver.h"
     "src/utils.c"
     "src/utils.h"
+    "src/platform/platform.c"
+    "src/platform/platform.h"
 )
 
 # Add some preprocessor defines
-target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
+target_compile_definitions(server
+    PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>"
+)
 
-add_dependencies(${CMAKE_PROJECT_NAME} basic)
+add_dependencies(server
+    basic
+    data_structures
+)
 
-target_link_libraries(${CMAKE_PROJECT_NAME}
+target_link_libraries(server
     PRIVATE
         basic::basic
+        data_structures::data_structures
 )
 
 # Build the main project executable

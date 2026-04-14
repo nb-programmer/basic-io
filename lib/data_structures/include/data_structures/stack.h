@@ -1,8 +1,9 @@
 #pragma once
 
-typedef struct _stk_node {
-    void *data;
-    struct _stk_node *next;
+typedef struct _stk_node
+{
+	void *data;
+	struct _stk_node *next;
 } StackNode;
 
 StackNode *stack_create_node();

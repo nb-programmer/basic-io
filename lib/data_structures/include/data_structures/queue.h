@@ -1,12 +1,14 @@
 #pragma once
 
-typedef struct _q_node {
-    void *data;
-    struct _q_node *next;
+typedef struct _q_node
+{
+	void *data;
+	struct _q_node *next;
 } QueueNode;
 
-typedef struct {
-    QueueNode *front, *rear;
+typedef struct
+{
+	QueueNode *front, *rear;
 } Queue;
 
 QueueNode *queue_create_node();
