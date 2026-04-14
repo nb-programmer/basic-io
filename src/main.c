@@ -12,11 +12,11 @@
 
 /*
 References:
-https:// www.youtube.com/watch?v=t4e7PjRygt0
-https:// www.informit.com/articles/article.aspx?p=28697&seqNum=4
-https:// www.tutorialspoint.com/c_standard_library/
-https:// simplesnippets.tech/infix-to-prefix-conversion-using-stack-data-structure-with-c-program-code/
-https:// en.cppreference.com/w/c/language/operator_precedence
+https://www.youtube.com/watch?v=t4e7PjRygt0
+https://www.informit.com/articles/article.aspx?p=28697&seqNum=4
+https://www.tutorialspoint.com/c_standard_library/
+https://simplesnippets.tech/infix-to-prefix-conversion-using-stack-data-structure-with-c-program-code/
+https://en.cppreference.com/w/c/language/operator_precedence
 */
 
 #include "utils.h"
@@ -233,7 +233,7 @@ int spawn_http_worker(int cli_sock, tcp_server *tcpsv) {
     // We need to close the client socket in the parent process
     // and close the listening socket in the child process.
     // After child process is done, exit promptly.
-    // See https:// stackoverflow.com/a/6019241/12887350
+    // See https://stackoverflow.com/a/6019241/12887350
 
     int pid = fork();
     if (pid < 0) return pid;
