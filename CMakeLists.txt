@@ -22,6 +22,8 @@ add_executable(${CMAKE_PROJECT_NAME}
     "src/tcpserver.h"
     "src/utils.c"
     "src/utils.h"
+    "src/platform/platform.c"
+    "src/platform/platform.h"
 )
 
 # Add some preprocessor defines
