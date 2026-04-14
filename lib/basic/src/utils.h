@@ -1,5 +1,8 @@
 #pragma once
 
+// Utility functions
+
+void print_level_space(int level);
 int string_is_float(char *str);
 
 #ifdef _MSC_VER 
