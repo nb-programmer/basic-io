@@ -12,7 +12,7 @@ void system_sleep(float seconds) {
 #ifdef __linux__
     // Calculate the duration in terms of microseconds (x 10^6)
     unsigned long long duration = (unsigned long long)(seconds * 1e6);
-    usleep(us);
+    usleep(duration);
 #elif defined(_WIN32) || defined(_WIN64)
     // Calculate the duration in terms of milliseconds (x 10^3)
     unsigned long duration = (unsigned long long)(seconds * 1e3);
