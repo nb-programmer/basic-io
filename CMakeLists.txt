@@ -27,11 +27,12 @@ add_executable(${CMAKE_PROJECT_NAME}
 # Add some preprocessor defines
 target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
 
-add_dependencies(${CMAKE_PROJECT_NAME} basic)
+add_dependencies(${CMAKE_PROJECT_NAME} basic data_structures)
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
         basic::basic
+        data_structures::data_structures
 )
 
 # Build the main project executable
