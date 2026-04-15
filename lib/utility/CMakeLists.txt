@@ -11,6 +11,7 @@ project(
 # Build the main project executable
 add_library(${PROJECT_NAME}
     "src/utils.c"
+    "src/platform.c"
 )
 
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
