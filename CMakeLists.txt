@@ -11,19 +11,12 @@ project(
 add_subdirectory("lib/basic/")
 add_subdirectory("lib/basic_system_interface/")
 add_subdirectory("lib/data_structures/")
+add_subdirectory("lib/utility/")
+add_subdirectory("lib/http/")
 
 # Build the main project executable
 add_executable(server
     "src/http_server_main.c"
-
-    "src/http.c"
-    "src/http.h"
-    "src/tcpserver.c"
-    "src/tcpserver.h"
-    "src/utils.c"
-    "src/utils.h"
-    "src/platform/platform.c"
-    "src/platform/platform.h"
 )
 
 # Add some preprocessor defines
@@ -34,19 +27,22 @@ target_compile_definitions(server
 add_dependencies(server
     basic
     data_structures
+    utility
+    http
 )
 
 target_link_libraries(server
     PRIVATE
         basic::basic
         data_structures::data_structures
+        utility::utility
+        http::http
 )
 
-# Build the main project executable
+# Build the test executables
+
 add_executable(${CMAKE_PROJECT_NAME}-test_ast
     "src/test_ast.c"
-    "src/utils.c"
-    "src/utils.h"
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}-test_ast

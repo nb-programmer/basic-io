@@ -1,7 +1,8 @@
 
-#include "http.h"
-#include "utils.h"
-#include "platform/platform.h"
+#include "http/http.h"
+
+#include <utility/platform/platform.h>
+#include <utility/utils.h>
 
 // Standard libraries
 #include <stdlib.h>

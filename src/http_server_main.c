@@ -17,10 +17,11 @@ https://simplesnippets.tech/infix-to-prefix-conversion-using-stack-data-structur
 https://en.cppreference.com/w/c/language/operator_precedence
 */
 
-#include "utils.h"
-#include "http.h"
-#include "platform/platform.h"
-#include "tcpserver.h"
+#include <utility/utils.h>
+#include <utility/platform/platform.h>
+#include <tcpserver/tcpserver.h>
+#include <http/http.h>
+
 #include <basic/ast.h>
 #include <basic/basic.h>
 
@@ -305,7 +306,7 @@ int main(int argc, char *argv[])
 		return 1;
 
 	// Start the TCP server, waiting for new clients to connect
-	if (tcpserver_startlistening(&sock_sv) != 0)
+	if (tcpserver_start_listening(&sock_sv) != 0)
 		return 1;
 
 	tcpserver_close(&sock_sv);

@@ -1,6 +1,6 @@
 
 #include "basic/ast.h"
-#include "utils.h"
+#include <utility/utils.h>
 
 // Standard libraries
 #include <stdio.h>
