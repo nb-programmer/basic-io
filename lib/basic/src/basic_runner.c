@@ -212,6 +212,7 @@ void basic_var_assignment(BASICRuntime *runtime, ASTNode *args)
 // Executes a BASICProgram object (inside the runtime)
 ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc)
 {
+	ASTNodeData result = ASTVOID;
 	// 'pc' is our "program counter"
 	// 'runtime' stores all variables and their values, and such data for running the program
 
@@ -249,7 +250,7 @@ ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc)
 		// Expression directly given as a statement (eg. Variable assignment)
 		case AST_EXPRESSION:
 		case AST_OPERATION:
-			basic_evaluate_node(runtime, current_pc);
+			result = basic_evaluate_node(runtime, current_pc);
 			break;
 		case AST_KEYWORD:
 		{
@@ -289,7 +290,7 @@ ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc)
 		}
 	}
 
-	return ASTVOID;
+	return result;
 }
 
 // Creates a runtime environment for running the basic interpreter

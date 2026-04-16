@@ -55,6 +55,18 @@ void basic_insert_token(BASICParseTree *ptree, BASICToken tok)
 	ptree->tokens_length = new_token_size;
 }
 
+void basic_clear_tokens(BASICParseTree *ptree)
+{
+	if (ptree->tokens == NULL)
+	{
+		return;
+	}
+
+	free(ptree->tokens);
+	ptree->tokens = NULL;
+	ptree->tokens_length = 0;
+}
+
 // Returns 1 if given symbol is present in the given list of symbols
 int token_char_contains(char *list, int list_size, char symbol)
 {
@@ -96,6 +108,8 @@ int basic_tokenize(BASICProgram *program)
 	char *tok_ptr, *tok_start;
 	StringLiteral buffer = {0};
 	int tok_len = 0;
+
+	basic_clear_tokens(ptree);
 
 	for (tok_ptr = program->program_source; *tok_ptr != '\0'; tok_ptr++)
 	{

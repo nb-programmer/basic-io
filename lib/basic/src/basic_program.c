@@ -33,6 +33,8 @@ void basic_clear_program(BASICProgram *program)
 {
 	// Delete each child node and it's children recursively
 	ast_delete_children_cascade(program->program_sequence);
+	program->program_sequence->next = NULL;
+	program->program_sequence->child = NULL;
 }
 
 void basic_destroy_program(BASICProgram *program)
