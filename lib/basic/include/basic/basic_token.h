@@ -30,3 +30,5 @@ typedef struct
 	int tokens_length;
 	// Stack for knowning current scope
 } BASICParseTree;
+
+const char *_cvt_whitespace_to_escape_code(char character);

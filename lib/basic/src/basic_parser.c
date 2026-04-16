@@ -578,7 +578,8 @@ int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_
 			{
 			case ',':
 			case ';':
-				lprintf("AST", LOGTYPE_DEBUG, "Parse expression delimiter '%s'\n", expr[*parser_idx].token);
+			case '\n':
+				lprintf("AST", LOGTYPE_DEBUG, "Parse expression delimiter '%s'\n", _cvt_whitespace_to_escape_code(expr[*parser_idx].token[0]));
 				// goto, yuck! But it's needed to break from the for loop
 				goto ast_expr_done;
 			}
