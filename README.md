@@ -168,7 +168,8 @@ Some features I would like to implement in this project:
 
 - [ ] Refactor the whole thing :)
 - [ ] Add more built-in functions and constants
+  - [ ] Make constants actually constant
 - [ ] Add ability to create user-defined functions
-- [ ] Make use of WebSocket to allow real-time communication
-  - [ ] Remove the Web server entirely so that the Pages can be served by a real Web server. The BASIC interpreter will run using only WebSocket.
+- [ ] Allow `stdin`
+- [ ] Port to C++
 - [ ] Remove dependencies on Linux (it was made for Linux as that was the subject I wrote it for)
