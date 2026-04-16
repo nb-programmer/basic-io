@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stddef.h>
 
 #include "basic/basic.h"
 #include "basic/ast.h"
@@ -15,14 +15,15 @@ ASTNodeData basic_fn_print(BASICRuntime *runtime, ASTNode *args)
 	{
 		ASTNodeData value = basic_evaluate_node(runtime, arg);
 		ast_data_as_string(value, temp);
-		printf("%s", temp);
+		system_tty_printf("%s", temp);
+
 		arg = arg->next;
 		// Space separated arguments
 		if (arg != NULL)
-			printf(" ");
+			system_tty_write(" ");
 	}
-	printf("\n");
-	fflush(stdout);
+	system_tty_write("\n");
+	system_tty_flush_output();
 
 	// No return value
 	return ASTVOID;

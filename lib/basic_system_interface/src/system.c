@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #ifdef __linux__
 #include <unistd.h>
@@ -33,4 +34,22 @@ float system_random_float()
 {
 	// Generate a random number between 0 and 1
 	return ((float)rand()) / (float)RAND_MAX;
+}
+
+void system_tty_write(const char *str)
+{
+	fputs(str, stdout);
+}
+
+void system_tty_printf(const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	vfprintf(stdout, format, args);
+	va_end(args);
+}
+
+void system_tty_flush_output()
+{
+	fflush(stdout);
 }
