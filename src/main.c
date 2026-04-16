@@ -68,6 +68,7 @@ char *basic_prompt_read_line(char *line_buffer, const size_t line_size)
 void basic_interactive_shell()
 {
 	char line_buffer[1024];
+	int execution_mode;
 
 	BASICProgram *basic_program = basic_create_program();
 	BASICRuntime *runtime = basic_create_runtime(basic_program);
@@ -83,6 +84,14 @@ void basic_interactive_shell()
 		basic_clear_program(basic_program);
 		basic_program->program_source = line_buffer;
 		runtime->halt = 0;
+		execution_mode = 0;
+
+		if (line_buffer[0] == '$')
+		{
+			// AST display-only mode. Parse the program, but don't execute
+			execution_mode = 1;
+			basic_program->program_source = line_buffer + 1;
+		}
 
 		if (basic_tokenize(basic_program) != 0)
 		{
@@ -94,22 +103,27 @@ void basic_interactive_shell()
 			continue;
 		}
 
-		// ast_display(basic_program->program_sequence);
-
-		ASTNodeData result = basic_execute(runtime, basic_program->program_sequence);
-
-		if (result.token_type != DTYPE_NONE)
+		switch (execution_mode)
 		{
-			StringLiteral result_buffer;
-			ast_data_as_string(result, result_buffer);
-			puts(result_buffer);
+			case 1:
+				ast_display(basic_program->program_sequence);
+				break;
+			default:
+				ASTNodeData result = basic_execute(runtime, basic_program->program_sequence);
+
+				if (result.token_type != DTYPE_NONE)
+				{
+					StringLiteral result_buffer;
+					ast_data_as_string(result, result_buffer);
+					puts(result_buffer);
+				}
 		}
 	}
 }
 
 int main(int argc, char *argv[])
 {
-	set_log_mask(LOGMASK_ALL & ~(LOGTYPE_DEBUG));
+	// set_log_mask(LOGMASK_ALL & ~(LOGTYPE_DEBUG));
 
 	if (argc < 2)
 	{
