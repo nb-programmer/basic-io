@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 	const char test_prog_fn_call_in_fn_call[] = "print(random() * 1000)\n";
 
 	// Place whatever program to test here
-	basic_program->program_source = test_prog_fn_call_in_fn_call;
+	basic_program->program_source = test_prog;
 
 	basic_tokenize(basic_program);
 	basic_parse_to_ast(basic_program);

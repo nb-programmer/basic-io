@@ -3,6 +3,7 @@
 #include <data_structures/stack.h>
 #include <data_structures/queue.h>
 #include <utility/utils.h>
+#include <utility/logging/logging.h>
 
 #include <stdio.h>
 #include <stdlib.h>

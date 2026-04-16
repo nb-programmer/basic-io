@@ -12,6 +12,7 @@ project(
 add_library(${PROJECT_NAME}
     "src/utils.c"
     "src/platform.c"
+    "src/logging.c"
 )
 
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})

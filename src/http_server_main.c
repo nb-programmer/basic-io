@@ -19,6 +19,7 @@ https://en.cppreference.com/w/c/language/operator_precedence
 
 #include <utility/utils.h>
 #include <utility/platform/platform.h>
+#include <utility/logging/logging.h>
 #include <tcpserver/tcpserver.h>
 #include <http/http.h>
 
@@ -168,7 +169,7 @@ void run_basic_program(int sock_fd, http_request_header *req, http_response_head
 	/* Debugging */
 
 	// Reset logging mask
-	log_print_mask = LOGTYPE_ERROR | LOGTYPE_INFO;
+	unsigned int log_print_mask = LOGTYPE_ERROR | LOGTYPE_INFO;
 
 	if (show_parser_log)
 	{
@@ -180,6 +181,8 @@ void run_basic_program(int sock_fd, http_request_header *req, http_response_head
 		// Runner logs to "message" mask
 		log_print_mask |= LOGTYPE_MESSAGE;
 	}
+
+	set_log_mask(log_print_mask);
 
 	// Put out OK header
 	res->status_code = 200;

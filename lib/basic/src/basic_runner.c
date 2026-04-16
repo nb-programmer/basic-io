@@ -1,6 +1,7 @@
 #include <data_structures/stack.h>
 #include <basic_system_interface/system.h>
 #include <utility/utils.h>
+#include <utility/logging/logging.h>
 
 #include "basic/basic.h"
 #include "basic/ast.h"

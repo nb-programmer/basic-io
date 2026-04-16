@@ -19,9 +19,6 @@ add_library(${PROJECT_NAME}
 
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-# Add some preprocessor defines
-target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>")
-
 add_dependencies(${PROJECT_NAME} basic_system_interface data_structures utility)
 
 target_link_libraries(${PROJECT_NAME}

@@ -1,6 +1,7 @@
 #include "basic/basic.h"
 
 #include <utility/utils.h>
+#include <utility/logging/logging.h>
 
 #include <stdio.h>
 #include <stdlib.h>

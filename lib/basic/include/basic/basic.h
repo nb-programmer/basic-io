@@ -15,19 +15,6 @@
 #include "ast.h"
 #include <data_structures/stack.h>
 
-/* For printing Log messages */
-extern unsigned int log_print_mask;
-
-// Log level mask
-#define LOGTYPE_DEBUG (1 << 0)
-#define LOGTYPE_INFO (1 << 1)
-#define LOGTYPE_MESSAGE (1 << 2)
-#define LOGTYPE_ERROR (1 << 3)
-#define LOGMASK_ALL 0xffff
-
-// Printf modified to allow only selected messages
-void lprintf(const char *tag, unsigned int level_mask, const char *format, ...);
-
 /* AST parser (tokenizer) */
 
 typedef enum

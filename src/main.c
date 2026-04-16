@@ -1,0 +1,96 @@
+// Standard libraries
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <utility/logging/logging.h>
+
+#include <basic/ast.h>
+#include <basic/basic.h>
+
+#define BUFFER_SIZE 8
+
+// Simply run the program sequence from the given program
+void interpret_basic_program(BASICProgram *program)
+{
+	StringLiteral buffer;
+	BASICRuntime *runtime;
+
+	if (basic_tokenize(program) != 0)
+	{
+		return;
+	}
+
+	if (basic_parse_to_ast(program))
+	{
+		return;
+	}
+
+	runtime = basic_create_runtime(program);
+
+	if (runtime == NULL)
+		return;
+
+	basic_execute(runtime, program->program_sequence);
+
+	basic_free_runtime(runtime);
+}
+
+void read_basic_program(FILE *basic_program_file, char **program_buffer)
+{
+	size_t program_buffer_size;
+	long file_size;
+
+	fseek(basic_program_file, 0, SEEK_END);
+	file_size = ftell(basic_program_file);
+	fseek(basic_program_file, 0, SEEK_SET);
+
+	program_buffer_size = file_size + 1;  // 1 byte for null terminator
+	*program_buffer = (char *) calloc(program_buffer_size, sizeof(char));
+
+	if (*program_buffer == NULL)
+	{
+		fprintf(stderr, "Failed to allocate %zd bytes of memory to read BASIC program file.", program_buffer_size);
+		_exit(1);
+	}
+
+	fread_s(*program_buffer, program_buffer_size, sizeof(char), file_size, basic_program_file);
+}
+
+int main(int argc, char *argv[])
+{
+	if (argc < 2)
+	{
+		puts("Usage:");
+		puts("./BasicIO <file>");
+		return 1;
+	}
+
+	set_log_mask(LOGMASK_ALL & ~(LOGTYPE_DEBUG));
+
+	FILE *basic_program_file = fopen(argv[1], "rb");
+	if (basic_program_file == NULL)
+	{
+		fputs("Failed to open the given file.", stderr);
+		return 1;
+	}
+
+	char *program_buffer = NULL;
+
+	read_basic_program(basic_program_file, &program_buffer);
+	if (program_buffer == NULL)
+	{
+		fputs("Failed to read the given file.", stderr);
+		return 1;
+	}
+
+	fclose(basic_program_file);
+
+	BASICProgram *basic_program = basic_create_program();
+	basic_program->program_source = program_buffer;
+
+	interpret_basic_program(basic_program);
+	basic_destroy_program(basic_program);
+
+	free(program_buffer);
+}

@@ -15,20 +15,27 @@ add_subdirectory("lib/utility/")
 add_subdirectory("lib/http/")
 
 # Build the main project executable
-add_executable(server
-    "src/http_server_main.c"
+add_executable(${CMAKE_PROJECT_NAME}
+    "src/main.c"
 )
 
-# Add some preprocessor defines
-target_compile_definitions(server
-    PUBLIC "$<$<CONFIG:DEBUG>:DEBUG>"
-)
-
-add_dependencies(server
+add_dependencies(${CMAKE_PROJECT_NAME}
     basic
     data_structures
     utility
-    http
+)
+
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    PRIVATE
+        basic::basic
+        data_structures::data_structures
+        utility::utility
+)
+
+# Server
+add_executable(server
+    "src/http_server_main.c"
 )
 
 target_link_libraries(server
