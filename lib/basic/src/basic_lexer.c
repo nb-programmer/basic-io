@@ -1,4 +1,6 @@
 #include "basic/basic.h"
+#include "basic/basic_token.h"
+#include "basic/basic_program.h"
 
 #include <utility/utils.h>
 #include <utility/logging/logging.h>
@@ -13,7 +15,7 @@
 // Known patterns to translate to a token list
 
 // Keywords
-// Make sure to update the KEYWORD_IDX_* entry in basic.h
+// Make sure to update the KEYWORD_IDX_* entry in basic_parser.h
 char *PARSE_KEYWORDS[] = {"WHILE", "IF", "THEN", "ELSE", "END", "GOTO", NULL};
 int PARSE_KW_COUNT = 6;
 
@@ -150,7 +152,7 @@ int basic_tokenize(BASICProgram *program)
 			tk_op.token_type = TOKEN_OPERATOR;
 			tk_op.token_at = tok_ptr;
 			basic_insert_token(ptree, tk_op);
-			lprintf("LEXER", LOGTYPE_DEBUG, "Found operator %c\n", *tok_ptr);
+			lprintf("LEXER", LOGTYPE_DEBUG, "Found operator '%s'\n", tk_op.token);
 			continue;
 		}
 

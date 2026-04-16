@@ -142,7 +142,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
 					}
 					else
 					{
-						lprintf("AST", LOGTYPE_ERROR, "An error (code %d) occured while parsing IF clause\n", ret);
+						lprintf("AST", LOGTYPE_ERROR, "An error (code %d) occurred while parsing IF clause\n", ret);
 						return ret;
 					}
 				}
@@ -201,7 +201,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
 					}
 					else
 					{
-						lprintf("AST", LOGTYPE_ERROR, "An error (code %d) occured while parsing %s clause\n", ret, PARSE_KEYWORDS[KEYWORD_IDX_WHILE]);
+						lprintf("AST", LOGTYPE_ERROR, "An error (code %d) occurred while parsing %s clause\n", ret, PARSE_KEYWORDS[KEYWORD_IDX_WHILE]);
 						return ret;
 					}
 				}

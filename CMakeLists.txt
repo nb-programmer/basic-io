@@ -25,7 +25,6 @@ add_dependencies(${CMAKE_PROJECT_NAME}
     utility
 )
 
-
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
         basic::basic

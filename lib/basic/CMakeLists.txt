@@ -15,6 +15,7 @@ add_library(${PROJECT_NAME}
     "src/basic_parser.c"
     "src/basic_program.c"
     "src/basic_runner.c"
+    "src/basic_runtime_builtin_functions.c"
 )
 
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
