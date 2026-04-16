@@ -49,7 +49,7 @@ void read_basic_program(FILE *basic_program_file, char **program_buffer)
 	if (*program_buffer == NULL)
 	{
 		fprintf(stderr, "Failed to allocate %zd bytes of memory to read BASIC program file.", program_buffer_size);
-		_exit(1);
+		exit(1);
 	}
 
 #ifdef __linux__
