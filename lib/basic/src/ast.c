@@ -7,7 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-ASTNodeData ASTVOID = {0, DTYPE_NONE};
+ASTNodeData ASTVOID = {
+	.token = 0,
+	.token_type = DTYPE_NONE
+};
 
 ASTNode *ast_create_node()
 {

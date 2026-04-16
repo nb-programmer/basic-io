@@ -45,8 +45,8 @@ void read_basic_program(FILE *basic_program_file, char **program_buffer)
 	file_size = ftell(basic_program_file);
 	fseek(basic_program_file, 0, SEEK_SET);
 
-	program_buffer_size = file_size + 1;  // 1 byte for null terminator
-	*program_buffer = (char *) calloc(program_buffer_size, sizeof(char));
+	program_buffer_size = file_size + 1; // 1 byte for null terminator
+	*program_buffer = (char *)calloc(program_buffer_size, sizeof(char));
 
 	if (*program_buffer == NULL)
 	{
@@ -54,7 +54,11 @@ void read_basic_program(FILE *basic_program_file, char **program_buffer)
 		_exit(1);
 	}
 
+#ifdef __linux__
+	fread(*program_buffer, sizeof(char), file_size, basic_program_file);
+#elif defined(_MSC_VER)
 	fread_s(*program_buffer, program_buffer_size, sizeof(char), file_size, basic_program_file);
+#endif
 }
 
 int main(int argc, char *argv[])
