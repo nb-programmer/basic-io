@@ -123,7 +123,7 @@ void basic_interactive_shell()
 
 int main(int argc, char *argv[])
 {
-	// set_log_mask(LOGMASK_ALL & ~(LOGTYPE_DEBUG));
+	set_log_mask(LOGMASK_ALL & ~(LOGTYPE_DEBUG));
 
 	if (argc < 2)
 	{

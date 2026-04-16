@@ -26,11 +26,29 @@ char *PARSE_BOOLEAN[] = {"FALSE", "TRUE"};
 char PARSE_OPERATORS[] = {'=', '+', '-', '*', '/', '<', '>', '!', '%'};
 
 // Separator
-char PARSE_SEPARATOR[] = {'(', ')', ','};
+char PARSE_SEPARATOR[] = {'(', ')'};
 
 // Whitespace
 // <newline> is a separator of program statements
-char PARSE_WS_CHAR[] = {' ', '\t', '\n'};
+char PARSE_WS_CHAR[] = {' ', '\t', '\n', ',', ';'};
+
+const char *_cvt_whitespace_to_escape_code(char character)
+{
+	switch (character)
+	{
+		case ' ':
+			return "<space>";
+		case '\t':
+			return "\\t";
+		case '\n':
+			return "\\n";
+		case ',':
+			return ",";
+		case ';':
+			return ";";
+	}
+	return "<unknown>";
+}
 
 // Function to insert new token into the token array
 void basic_insert_token(BASICParseTree *ptree, BASICToken tok)
@@ -165,7 +183,7 @@ int basic_tokenize(BASICProgram *program)
 			tk_ws.token[1] = '\0';
 			tk_ws.token_at = tok_ptr;
 			basic_insert_token(ptree, tk_ws);
-			lprintf("LEXER", LOGTYPE_DEBUG, "Found whitespace\n");
+			lprintf("LEXER", LOGTYPE_DEBUG, "Found whitespace '%s'\n", _cvt_whitespace_to_escape_code(*tok_ptr));
 			continue;
 		}
 		else
