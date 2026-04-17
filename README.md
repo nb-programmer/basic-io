@@ -155,7 +155,7 @@ while true then
     end
 
     if is_prime then
-    	print(i)
+        print(i)
     end
 
     i = i + 2
