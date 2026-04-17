@@ -1,9 +1,9 @@
-
-#include "utils.h"
 #include "basic/basic.h"
 
 #include <data_structures/stack.h>
 #include <data_structures/queue.h>
+#include <utility/utils.h>
+#include <utility/logging/logging.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,7 +142,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
 					}
 					else
 					{
-						lprintf("AST", LOGTYPE_ERROR, "An error (code %d) occured while parsing IF clause\n", ret);
+						lprintf("AST", LOGTYPE_ERROR, "An error (code %d) occurred while parsing IF clause\n", ret);
 						return ret;
 					}
 				}
@@ -201,7 +201,7 @@ int basic_parse_to_ast_between_level(BASICParseTree *ptree, ASTNode *root, int f
 					}
 					else
 					{
-						lprintf("AST", LOGTYPE_ERROR, "An error (code %d) occured while parsing %s clause\n", ret, PARSE_KEYWORDS[KEYWORD_IDX_WHILE]);
+						lprintf("AST", LOGTYPE_ERROR, "An error (code %d) occurred while parsing %s clause\n", ret, PARSE_KEYWORDS[KEYWORD_IDX_WHILE]);
 						return ret;
 					}
 				}
@@ -444,89 +444,64 @@ int basic_expr_make_tree(Queue *infix_queue, ASTNode *root)
 }
 
 // Convert an expression into prefix notation and create an AST
-int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_from, int parse_to, int *parse_new_pos)
+int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_from, int parse_to, int *parser_idx)
 {
 	lprintf("AST", LOGTYPE_DEBUG, "Trying to find expression between tokens %d and %d\n", parse_from, parse_to);
-	int expr_start_idx = parse_from, expr_end_idx = -1, scope_level = 0;
 
 	BASICToken *expr = ptree->tokens;
-	*parse_new_pos = parse_from;
-
-	// Expression ends when we reach end of current range, or a new line, or end of program
-	while (*parse_new_pos < parse_to)
-	{
-		if (expr[*parse_new_pos].token_type == TOKEN_SEPARATOR)
-		{
-			if (expr[*parse_new_pos].token[0] == '(')
-				scope_level++;
-			else if (expr[*parse_new_pos].token[0] == ')')
-				scope_level--;
-		}
-		if (expr[*parse_new_pos].token_type == TOKEN_END || expr[*parse_new_pos].token_type == TOKEN_KEYWORD || (expr[*parse_new_pos].token_type == TOKEN_WHITESPACE && expr[*parse_new_pos].token[0] == '\n' && scope_level == 0)
-			// || (expr[*parse_new_pos].token_type == TOKEN_SEPARATOR && expr[*parse_new_pos].token[0]==')' && scope_level==0)
-		)
-			break;
-		(*parse_new_pos)++;
-	}
-
-	// Save expression range and go back one token
-	expr_end_idx = (*parse_new_pos)--;
-	lprintf("AST", LOGTYPE_DEBUG, "Expression found from token %d to %d\n", expr_start_idx, expr_end_idx);
 
 	// Construct a stack of AST nodes to then rearrange to a tree structure
 	Queue infix_queue;
 	infix_queue.front = infix_queue.rear = NULL;
-	for (int i = expr_start_idx; i < expr_end_idx; i++)
+
+	for (*parser_idx = parse_from; *parser_idx < parse_to; (*parser_idx)++)
 	{
-		if (expr[i].token_type == TOKEN_END)
+		if (expr[*parser_idx].token_type == TOKEN_END)
 			break;
+
 		ASTNode *operator_node = ast_create_node();
 
 		// Translate tokens to appropriate nodes
-		switch (expr[i].token_type)
+		switch (expr[*parser_idx].token_type)
 		{
 		case TOKEN_NUM:
 			// We can either have an integer (no decimal point) or float (with decimal point)
 			operator_node->type = AST_IMMEDIATE;
-			if (string_is_float(expr[i].token))
+			if (string_is_float(expr[*parser_idx].token))
 			{
-				lprintf("AST", LOGTYPE_DEBUG, "Parse floating number\n");
+				lprintf("AST", LOGTYPE_DEBUG, "Parse floating number '%s'\n", expr[*parser_idx].token);
 				operator_node->data.token_type = DTYPE_FLT;
-				operator_node->data.token.literal.flt = atof(expr[i].token);
+				operator_node->data.token.literal.flt = atof(expr[*parser_idx].token);
 			}
 			else
 			{
-				lprintf("AST", LOGTYPE_DEBUG, "Parse integer number\n");
+				lprintf("AST", LOGTYPE_DEBUG, "Parse integer number '%s'\n", expr[*parser_idx].token);
 				operator_node->data.token_type = DTYPE_NUM;
-				operator_node->data.token.literal.num = atoi(expr[i].token);
+				operator_node->data.token.literal.num = atoi(expr[*parser_idx].token);
 			}
 			break;
 		case TOKEN_STRING:
-			lprintf("AST", LOGTYPE_DEBUG, "Parse string\n");
+			lprintf("AST", LOGTYPE_DEBUG, "Parse string literal \"%s\"\n", expr[*parser_idx].token);
 			operator_node->type = AST_IMMEDIATE;
 			operator_node->data.token_type = DTYPE_STR;
-			strcpy(operator_node->data.token.literal.str, expr[i].token);
+			strcpy(operator_node->data.token.literal.str, expr[*parser_idx].token);
 			break;
 		case TOKEN_BOOL:
 			// Booleans are same as just setting value to 0 or 1
-			lprintf("AST", LOGTYPE_DEBUG, "Parse boolean\n");
+			lprintf("AST", LOGTYPE_DEBUG, "Parse boolean '%s'\n", expr[*parser_idx].token);
 			operator_node->type = AST_IMMEDIATE;
 			operator_node->data.token_type = DTYPE_NUM;
-			if (strcasecmp(expr[i].token, PARSE_BOOLEAN[0]) == 0)
+			if (strcasecmp(expr[*parser_idx].token, PARSE_BOOLEAN[0]) == 0)
 				operator_node->data.token.literal.num = 0;
-			else if (strcasecmp(expr[i].token, PARSE_BOOLEAN[1]) == 0)
+			else if (strcasecmp(expr[*parser_idx].token, PARSE_BOOLEAN[1]) == 0)
 				operator_node->data.token.literal.num = 1;
 			break;
-		case TOKEN_KEYWORD:
-			lprintf("AST", LOGTYPE_ERROR, "Error: Unexpected keyword '%s' found in expression.\n", expr[i].token);
-			return 1;
-
 		case TOKEN_SEPARATOR:
 		case TOKEN_OPERATOR:
-			lprintf("AST", LOGTYPE_DEBUG, "Parse operator\n");
+			lprintf("AST", LOGTYPE_DEBUG, "Parse operator '%s'\n", expr[*parser_idx].token);
 			operator_node->type = AST_OPERATION;
 			operator_node->data.token_type = DTYPE_SYMB;
-			switch (expr[i].token[0])
+			switch (expr[*parser_idx].token[0])
 			{
 			case '+':
 				operator_node->data.token.op = OP_ADD;
@@ -570,20 +545,43 @@ int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_
 			}
 			break;
 		case TOKEN_IDENTIFIER:
-			if (basic_parse_id_is_fn_call(expr, i, expr_end_idx))
+			if (basic_parse_id_is_fn_call(expr, *parser_idx, parse_to))
 			{
-				lprintf("AST", LOGTYPE_DEBUG, "Parse function call %s\n", expr[i].token);
+				lprintf("AST", LOGTYPE_DEBUG, "Parse function call %s\n", expr[*parser_idx].token);
 				operator_node->type = AST_EXPRESSION;
 				operator_node->data.token_type = DTYPE_SYMB;
 				operator_node->data = ASTVOID;
-				basic_parse_form_function(ptree, operator_node, i, expr_end_idx, &i);
+				basic_parse_form_function(ptree, operator_node, *parser_idx, parse_to, parser_idx);
 			}
 			else
 			{
-				lprintf("AST", LOGTYPE_DEBUG, "Parse identifier %s\n", expr[i].token);
+				lprintf("AST", LOGTYPE_DEBUG, "Parse identifier %s\n", expr[*parser_idx].token);
 				operator_node->type = AST_VARIABLE;
 				operator_node->data.token_type = DTYPE_SYMB;
-				strcpy(operator_node->data.token.variable_name, expr[i].token);
+				strcpy(operator_node->data.token.variable_name, expr[*parser_idx].token);
+			}
+			break;
+
+		case TOKEN_KEYWORD:
+			if (strcasecmp(expr[*parser_idx].token, PARSE_KEYWORDS[KEYWORD_IDX_THEN]) == 0 || strcasecmp(expr[*parser_idx].token, PARSE_KEYWORDS[KEYWORD_IDX_END]) == 0)
+			{
+				lprintf("AST", LOGTYPE_DEBUG, "Parse expression termination identifier '%s'\n", expr[*parser_idx].token);
+				// goto, yuck! But it's needed to break from the for loop
+				goto ast_expr_done;
+			}
+
+			lprintf("AST", LOGTYPE_ERROR, "Error: Unexpected keyword '%s' found in expression.\n", expr[*parser_idx].token);
+			return 1;
+
+		case TOKEN_WHITESPACE:
+			switch (expr[*parser_idx].token[0])
+			{
+			case ',':
+			case ';':
+			case '\n':
+				lprintf("AST", LOGTYPE_DEBUG, "Parse expression delimiter '%s'\n", _cvt_whitespace_to_escape_code(expr[*parser_idx].token[0]));
+				// goto, yuck! But it's needed to break from the for loop
+				goto ast_expr_done;
 			}
 			break;
 		default:
@@ -596,6 +594,7 @@ int basic_parse_form_expression(BASICParseTree *ptree, ASTNode *root, int parse_
 			ast_delete_node(operator_node);
 	}
 
+ast_expr_done:
 	basic_expr_make_tree(&infix_queue, root);
 
 	return 0;

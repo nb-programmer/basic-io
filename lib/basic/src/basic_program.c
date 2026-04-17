@@ -1,25 +1,8 @@
-
 #include "basic/basic.h"
 
 // Standard libraries
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-
-unsigned int log_print_mask = -1;
-void lprintf(const char *tag, unsigned int level_mask, const char *format, ...)
-{
-	// Infinite arguments
-	va_list args;
-	va_start(args, format);
-	if ((log_print_mask & level_mask) != 0)
-	{
-		printf("(%s) ", tag);
-		// printf, but with variable arguments list
-		vprintf(format, args);
-	}
-	va_end(args);
-}
 
 BASICProgram *basic_create_program()
 {
@@ -50,6 +33,8 @@ void basic_clear_program(BASICProgram *program)
 {
 	// Delete each child node and it's children recursively
 	ast_delete_children_cascade(program->program_sequence);
+	program->program_sequence->next = NULL;
+	program->program_sequence->child = NULL;
 }
 
 void basic_destroy_program(BASICProgram *program)

@@ -1,9 +1,10 @@
 #include <data_structures/stack.h>
-#include <basic_system_interface/system.h>
+#include <utility/utils.h>
+#include <utility/logging/logging.h>
 
 #include "basic/basic.h"
 #include "basic/ast.h"
-#include "utils.h"
+#include "basic/basic_runtime_builtin_functions.h"
 
 #define _USE_MATH_DEFINES
 
@@ -77,21 +78,21 @@ void basic_set_variable(BASICRuntime *runtime, char var_name[], ASTNodeData valu
 basic_function basic_decode_function(char fn_name[])
 {
 	if (strcasecmp(fn_name, "print") == 0)
-		return _basic_fn_print;
+		return basic_fn_print;
 	if (strcasecmp(fn_name, "max") == 0)
-		return _basic_fn_max;
+		return basic_fn_max;
 	if (strcasecmp(fn_name, "min") == 0)
-		return _basic_fn_min;
+		return basic_fn_min;
 	if (strcasecmp(fn_name, "sleep") == 0)
-		return _basic_fn_sleep;
+		return basic_fn_sleep;
 	if (strcasecmp(fn_name, "int") == 0)
-		return _basic_fn_toint;
+		return basic_fn_toint;
 	if (strcasecmp(fn_name, "float") == 0)
-		return _basic_fn_toflt;
+		return basic_fn_toflt;
 	if (strcasecmp(fn_name, "random") == 0)
-		return _basic_fn_rand;
+		return basic_fn_rand;
 	if (strcasecmp(fn_name, "irandom") == 0)
-		return _basic_fn_irand;
+		return basic_fn_irand;
 
 	return (basic_function)0;
 }
@@ -127,7 +128,7 @@ ASTNodeData basic_evaluate_operation(BASICRuntime *runtime, ASTNode *expression)
 			if (error != 0)
 			{
 				runtime->halt = 1;
-				lprintf("EXEC", LOGTYPE_ERROR, "Error occured evaluating an expression: ");
+				lprintf("EXEC", LOGTYPE_ERROR, "Error occurred evaluating an expression: ");
 				switch (error)
 				{
 				case 1:
@@ -140,7 +141,7 @@ ASTNodeData basic_evaluate_operation(BASICRuntime *runtime, ASTNode *expression)
 					printf("Division by zero");
 					break;
 				default:
-					printf("Unknown error occured");
+					printf("Unknown error occurred");
 				}
 				printf("\n");
 			}
@@ -211,6 +212,7 @@ void basic_var_assignment(BASICRuntime *runtime, ASTNode *args)
 // Executes a BASICProgram object (inside the runtime)
 ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc)
 {
+	ASTNodeData result = ASTVOID;
 	// 'pc' is our "program counter"
 	// 'runtime' stores all variables and their values, and such data for running the program
 
@@ -248,7 +250,7 @@ ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc)
 		// Expression directly given as a statement (eg. Variable assignment)
 		case AST_EXPRESSION:
 		case AST_OPERATION:
-			basic_evaluate_node(runtime, current_pc);
+			result = basic_evaluate_node(runtime, current_pc);
 			break;
 		case AST_KEYWORD:
 		{
@@ -288,7 +290,7 @@ ASTNodeData basic_execute(BASICRuntime *runtime, ASTNode *pc)
 		}
 	}
 
-	return ASTVOID;
+	return result;
 }
 
 // Creates a runtime environment for running the basic interpreter
@@ -334,131 +336,6 @@ void basic_init_constants(BASICRuntime *runtime)
 	rand_max.token.literal.num = RAND_MAX;
 	basic_set_variable(runtime, "PI", pi_value);
 	basic_set_variable(runtime, "RANDOM_MAX", rand_max);
-}
-
-// Simple print function
-ASTNodeData _basic_fn_print(BASICRuntime *runtime, ASTNode *args)
-{
-	ASTNode *arg = args;
-	char temp[512] = {0};
-	while (arg != NULL)
-	{
-		ASTNodeData value = basic_evaluate_node(runtime, arg);
-		ast_data_as_string(value, temp);
-		printf("%s", temp);
-		arg = arg->next;
-		// Space separated arguments
-		if (arg != NULL)
-			printf(" ");
-	}
-	printf("\n");
-	fflush(stdout);
-
-	// No return value
-	return ASTVOID;
-}
-
-// Function to find maximum value from given parameters
-ASTNodeData _basic_fn_max(BASICRuntime *runtime, ASTNode *args)
-{
-	ASTNode *arg = args;
-	ASTNodeData ret_val = ASTVOID;
-	while (arg != NULL)
-	{
-		ASTNodeData value = basic_evaluate_node(runtime, arg);
-		ast_get_greater(ret_val, value, &ret_val);
-		arg = arg->next;
-	}
-	return ret_val;
-}
-
-// Function to find minimum value from given parameters
-ASTNodeData _basic_fn_min(BASICRuntime *runtime, ASTNode *args)
-{
-	ASTNode *arg = args;
-	ASTNodeData ret_val = ASTVOID;
-	while (arg != NULL)
-	{
-		ASTNodeData value = basic_evaluate_node(runtime, arg);
-		ast_get_lesser(ret_val, value, &ret_val);
-		arg = arg->next;
-	}
-
-	return ret_val;
-}
-
-// Sleep for given number of seconds (can be fraction)
-ASTNodeData _basic_fn_sleep(BASICRuntime *runtime, ASTNode *arg)
-{
-	// Exit if no argument passed
-	if (arg == NULL)
-		return ASTVOID;
-	// Evaluate the expression in the given argument
-	ASTNodeData value = basic_evaluate_node(runtime, arg);
-	// Convert to float
-	float sleep_seconds = ast_data_to_flt(value);
-	system_sleep(sleep_seconds);
-	return (ASTNodeData){0, DTYPE_NUM};
-}
-
-// Convert given integer / float to integer
-ASTNodeData _basic_fn_toint(BASICRuntime *runtime, ASTNode *arg)
-{
-	if (arg == NULL)
-	{
-		lprintf("EXEC", LOGTYPE_ERROR, "Error: Expected one argument to convert to integer, none found\n");
-		runtime->halt = 1;
-		return ASTVOID;
-	}
-	ASTNodeData value = basic_evaluate_node(runtime, arg);
-	int as_int = ast_data_to_int(value);
-	value.token.literal.flt = as_int;
-	value.token_type = DTYPE_NUM;
-	return value;
-}
-
-// Convert given integer / float to float
-ASTNodeData _basic_fn_toflt(BASICRuntime *runtime, ASTNode *arg)
-{
-	if (arg == NULL)
-	{
-		lprintf("EXEC", LOGTYPE_ERROR, "Error: Expected one argument to convert to float, none found\n");
-		runtime->halt = 1;
-		return ASTVOID;
-	}
-	ASTNodeData value = basic_evaluate_node(runtime, arg);
-	float as_flt = ast_data_to_flt(value);
-	value.token.literal.flt = as_flt;
-	value.token_type = DTYPE_FLT;
-	return value;
-}
-
-ASTNodeData _basic_fn_rand(BASICRuntime *runtime, ASTNode *arg)
-{
-	if (arg != NULL)
-	{
-		lprintf("EXEC", LOGTYPE_ERROR, "Error: Function call does not expect any arguments\n");
-		runtime->halt = 1;
-		return ASTVOID;
-	}
-	ASTNodeData random;
-	random.token.literal.flt = system_random_float();
-	random.token_type = DTYPE_FLT;
-	return random;
-}
-
-ASTNodeData _basic_fn_irand(BASICRuntime *runtime, ASTNode *arg)
-{
-	if (arg != NULL)
-	{
-		lprintf("EXEC", LOGTYPE_ERROR, "Error: Function call does not expect any arguments\n");
-		runtime->halt = 1;
-		return ASTVOID;
-	}
-	ASTNodeData random;
-	random.token.literal.num = system_random_int();
-	random.token_type = DTYPE_NUM;
-	return random;
 }
 
 /* Keyword evaluation */

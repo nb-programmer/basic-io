@@ -1,13 +1,16 @@
 
 #include "basic/ast.h"
-#include "utils.h"
+#include <utility/utils.h>
 
 // Standard libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-ASTNodeData ASTVOID = {0, DTYPE_NONE};
+ASTNodeData ASTVOID = {
+	.token = 0,
+	.token_type = DTYPE_NONE
+};
 
 ASTNode *ast_create_node()
 {

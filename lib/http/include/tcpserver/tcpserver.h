@@ -25,5 +25,5 @@ typedef struct _tcp_server
 
 // Public functions
 int tcpserver_create(tcp_server *tcpsv);
-int tcpserver_startlistening(tcp_server *tcpsv);
+int tcpserver_start_listening(tcp_server *tcpsv);
 void tcpserver_close(tcp_server *tcpsv);

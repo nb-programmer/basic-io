@@ -1,5 +1,5 @@
 
-#include "tcpserver.h"
+#include "tcpserver/tcpserver.h"
 
 // Standard libraries
 #include <stdio.h>
@@ -43,7 +43,7 @@ int tcpserver_create(tcp_server *tcpsv)
 }
 
 // Enables listening mode on the socket
-int tcpserver_startlistening(tcp_server *tcpsv)
+int tcpserver_start_listening(tcp_server *tcpsv)
 {
 	// Bind listening socket to above IP/port
 	if (bind(tcpsv->listen_sock, (struct sockaddr *)&(tcpsv->servsock_addr), sizeof(tcpsv->servsock_addr)) != 0)

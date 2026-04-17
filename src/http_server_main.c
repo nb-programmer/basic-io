@@ -17,10 +17,12 @@ https://simplesnippets.tech/infix-to-prefix-conversion-using-stack-data-structur
 https://en.cppreference.com/w/c/language/operator_precedence
 */
 
-#include "utils.h"
-#include "http.h"
-#include "platform/platform.h"
-#include "tcpserver.h"
+#include <utility/utils.h>
+#include <utility/platform/platform.h>
+#include <utility/logging/logging.h>
+#include <tcpserver/tcpserver.h>
+#include <http/http.h>
+
 #include <basic/ast.h>
 #include <basic/basic.h>
 
@@ -167,7 +169,7 @@ void run_basic_program(int sock_fd, http_request_header *req, http_response_head
 	/* Debugging */
 
 	// Reset logging mask
-	log_print_mask = LOGTYPE_ERROR | LOGTYPE_INFO;
+	unsigned int log_print_mask = LOGTYPE_ERROR | LOGTYPE_INFO;
 
 	if (show_parser_log)
 	{
@@ -179,6 +181,8 @@ void run_basic_program(int sock_fd, http_request_header *req, http_response_head
 		// Runner logs to "message" mask
 		log_print_mask |= LOGTYPE_MESSAGE;
 	}
+
+	set_log_mask(log_print_mask);
 
 	// Put out OK header
 	res->status_code = 200;
@@ -305,7 +309,7 @@ int main(int argc, char *argv[])
 		return 1;
 
 	// Start the TCP server, waiting for new clients to connect
-	if (tcpserver_startlistening(&sock_sv) != 0)
+	if (tcpserver_start_listening(&sock_sv) != 0)
 		return 1;
 
 	tcpserver_close(&sock_sv);

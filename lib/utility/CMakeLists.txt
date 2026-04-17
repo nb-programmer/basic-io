@@ -2,15 +2,17 @@ cmake_minimum_required(VERSION 3.20)
 
 # Configure project
 project(
-    basic_system_interface
-    DESCRIPTION "System interface for basic interpreter"
+    utility
+    DESCRIPTION "Utility functions and headers"
     LANGUAGES C CXX
     VERSION 1.0
 )
 
 # Build the main project executable
 add_library(${PROJECT_NAME}
-    "src/system.c"
+    "src/utils.c"
+    "src/platform.c"
+    "src/logging.c"
 )
 
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})

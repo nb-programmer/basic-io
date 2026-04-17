@@ -1,6 +1,9 @@
-
 #include "basic/basic.h"
-#include "utils.h"
+#include "basic/basic_token.h"
+#include "basic/basic_program.h"
+
+#include <utility/utils.h>
+#include <utility/logging/logging.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +15,7 @@
 // Known patterns to translate to a token list
 
 // Keywords
-// Make sure to update the KEYWORD_IDX_* entry in basic.h
+// Make sure to update the KEYWORD_IDX_* entry in basic_parser.h
 char *PARSE_KEYWORDS[] = {"WHILE", "IF", "THEN", "ELSE", "END", "GOTO", NULL};
 int PARSE_KW_COUNT = 6;
 
@@ -23,11 +26,29 @@ char *PARSE_BOOLEAN[] = {"FALSE", "TRUE"};
 char PARSE_OPERATORS[] = {'=', '+', '-', '*', '/', '<', '>', '!', '%'};
 
 // Separator
-char PARSE_SEPARATOR[] = {'(', ')', ','};
+char PARSE_SEPARATOR[] = {'(', ')'};
 
 // Whitespace
 // <newline> is a separator of program statements
-char PARSE_WS_CHAR[] = {' ', '\t', '\n'};
+char PARSE_WS_CHAR[] = {' ', '\t', '\n', ',', ';'};
+
+const char *_cvt_whitespace_to_escape_code(char character)
+{
+	switch (character)
+	{
+		case ' ':
+			return "<space>";
+		case '\t':
+			return "\\t";
+		case '\n':
+			return "\\n";
+		case ',':
+			return ",";
+		case ';':
+			return ";";
+	}
+	return "<unknown>";
+}
 
 // Function to insert new token into the token array
 void basic_insert_token(BASICParseTree *ptree, BASICToken tok)
@@ -52,6 +73,18 @@ void basic_insert_token(BASICParseTree *ptree, BASICToken tok)
 
 	memcpy(&(ptree->tokens[ptree->tokens_length]), &tok, sizeof(BASICToken));
 	ptree->tokens_length = new_token_size;
+}
+
+void basic_clear_tokens(BASICParseTree *ptree)
+{
+	if (ptree->tokens == NULL)
+	{
+		return;
+	}
+
+	free(ptree->tokens);
+	ptree->tokens = NULL;
+	ptree->tokens_length = 0;
 }
 
 // Returns 1 if given symbol is present in the given list of symbols
@@ -96,6 +129,8 @@ int basic_tokenize(BASICProgram *program)
 	StringLiteral buffer = {0};
 	int tok_len = 0;
 
+	basic_clear_tokens(ptree);
+
 	for (tok_ptr = program->program_source; *tok_ptr != '\0'; tok_ptr++)
 	{
 		// Check for digit
@@ -135,7 +170,7 @@ int basic_tokenize(BASICProgram *program)
 			tk_op.token_type = TOKEN_OPERATOR;
 			tk_op.token_at = tok_ptr;
 			basic_insert_token(ptree, tk_op);
-			lprintf("LEXER", LOGTYPE_DEBUG, "Found operator %c\n", *tok_ptr);
+			lprintf("LEXER", LOGTYPE_DEBUG, "Found operator '%s'\n", tk_op.token);
 			continue;
 		}
 
@@ -148,7 +183,7 @@ int basic_tokenize(BASICProgram *program)
 			tk_ws.token[1] = '\0';
 			tk_ws.token_at = tok_ptr;
 			basic_insert_token(ptree, tk_ws);
-			lprintf("LEXER", LOGTYPE_DEBUG, "Found whitespace\n");
+			lprintf("LEXER", LOGTYPE_DEBUG, "Found whitespace '%s'\n", _cvt_whitespace_to_escape_code(*tok_ptr));
 			continue;
 		}
 		else
