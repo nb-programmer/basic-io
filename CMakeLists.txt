@@ -12,7 +12,7 @@ add_subdirectory("lib/basic/")
 add_subdirectory("lib/basic_system_interface/")
 add_subdirectory("lib/data_structures/")
 add_subdirectory("lib/utility/")
-add_subdirectory("lib/http/")
+add_subdirectory("lib/http/" EXCLUDE_FROM_ALL)
 
 # Build the main project executable
 add_executable(${CMAKE_PROJECT_NAME}
@@ -34,6 +34,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 
 # Server
 add_executable(server
+    EXCLUDE_FROM_ALL
     "src/http_server_main.c"
 )
 
@@ -48,6 +49,7 @@ target_link_libraries(server
 # Build the test executables
 
 add_executable(${CMAKE_PROJECT_NAME}-test_ast
+    EXCLUDE_FROM_ALL
     "src/test_ast.c"
 )
 
