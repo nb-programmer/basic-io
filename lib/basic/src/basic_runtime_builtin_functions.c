@@ -83,7 +83,7 @@ ASTNodeData basic_fn_toint(BASICRuntime *runtime, ASTNode *arg)
 	}
 	ASTNodeData value = basic_evaluate_node(runtime, arg);
 	int as_int = ast_data_to_int(value);
-	value.token.literal.flt = as_int;
+	value.token.literal.num = as_int;
 	value.token_type = DTYPE_NUM;
 	return value;
 }
