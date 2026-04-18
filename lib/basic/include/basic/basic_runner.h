@@ -3,6 +3,8 @@
 #include "ast.h"
 #include "basic_program.h"
 
+#include <data_structures/stack.h>
+
 /* BASIC interpreter */
 
 typedef enum
