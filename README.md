@@ -166,10 +166,12 @@ end
 
 Some features I would like to implement in this project:
 
-- [ ] Refactor the whole thing :)
+- [x] Refactor the whole thing :)
 - [ ] Add more built-in functions and constants
   - [ ] Make constants actually constant
 - [ ] Add ability to create user-defined functions
 - [ ] Allow `stdin`
 - [ ] Port to C++
 - [ ] Remove dependencies on Linux (it was made for Linux as that was the subject I wrote it for)
+- [ ] Split the server and BASIC library into their own repos, use submodule to link to this
+- [ ] Add tests compatible with CTest
