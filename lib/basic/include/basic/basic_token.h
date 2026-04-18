@@ -29,6 +29,6 @@ typedef struct
 	BASICToken *tokens;
 	int tokens_length;
 	// Stack for knowning current scope
-} BASICParseTree;
+} BASICTokenParseList;
 
 const char *_cvt_whitespace_to_escape_code(char character);

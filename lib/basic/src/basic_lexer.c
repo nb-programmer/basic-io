@@ -1,4 +1,4 @@
-#include "basic/basic.h"
+#include "basic/basic_lexer.h"
 #include "basic/basic_token.h"
 #include "basic/basic_program.h"
 
@@ -51,40 +51,40 @@ const char *_cvt_whitespace_to_escape_code(char character)
 }
 
 // Function to insert new token into the token array
-void basic_insert_token(BASICParseTree *ptree, BASICToken tok)
+void basic_insert_token(BASICTokenParseList *parse_list, BASICToken tok)
 {
-	int new_token_size = ptree->tokens_length + 1;
-	if (ptree->tokens == NULL)
+	int new_token_size = parse_list->tokens_length + 1;
+	if (parse_list->tokens == NULL)
 	{
 		// In case of garbage value
-		ptree->tokens_length = 0;
+		parse_list->tokens_length = 0;
 		new_token_size = 1;
 
-		ptree->tokens = (BASICToken *)malloc(sizeof(BASICToken) * new_token_size);
+		parse_list->tokens = (BASICToken *)malloc(sizeof(BASICToken) * new_token_size);
 	}
 	else
-		ptree->tokens = (BASICToken *)realloc(ptree->tokens, sizeof(BASICToken) * new_token_size);
+		parse_list->tokens = (BASICToken *)realloc(parse_list->tokens, sizeof(BASICToken) * new_token_size);
 
-	if (ptree->tokens == NULL)
+	if (parse_list->tokens == NULL)
 	{
 		lprintf("LEXER", LOGTYPE_DEBUG, "Memory allocation failed");
 		return;
 	}
 
-	memcpy(&(ptree->tokens[ptree->tokens_length]), &tok, sizeof(BASICToken));
-	ptree->tokens_length = new_token_size;
+	memcpy(&(parse_list->tokens[parse_list->tokens_length]), &tok, sizeof(BASICToken));
+	parse_list->tokens_length = new_token_size;
 }
 
-void basic_clear_tokens(BASICParseTree *ptree)
+void basic_clear_tokens(BASICTokenParseList *parse_list)
 {
-	if (ptree->tokens == NULL)
+	if (parse_list->tokens == NULL)
 	{
 		return;
 	}
 
-	free(ptree->tokens);
-	ptree->tokens = NULL;
-	ptree->tokens_length = 0;
+	free(parse_list->tokens);
+	parse_list->tokens = NULL;
+	parse_list->tokens_length = 0;
 }
 
 // Returns 1 if given symbol is present in the given list of symbols
@@ -124,12 +124,12 @@ void program_whereis(char *program, char *current_position, char *buffer)
 // Converts words/symbols to tokens. Also called "Lexer"
 int basic_tokenize(BASICProgram *program)
 {
-	BASICParseTree *ptree = &(program->program_tokens);
+	BASICTokenParseList *parse_list = &(program->program_tokens);
 	char *tok_ptr, *tok_start;
 	StringLiteral buffer = {0};
 	int tok_len = 0;
 
-	basic_clear_tokens(ptree);
+	basic_clear_tokens(parse_list);
 
 	for (tok_ptr = program->program_source; *tok_ptr != '\0'; tok_ptr++)
 	{
@@ -153,7 +153,7 @@ int basic_tokenize(BASICProgram *program)
 			tk_num.token_at = tok_start;
 			// Go back one symbol as the above loop moved past the current token
 			tok_ptr--;
-			basic_insert_token(ptree, tk_num);
+			basic_insert_token(parse_list, tk_num);
 			lprintf("LEXER", LOGTYPE_DEBUG, "Found number %s\n", tk_num.token);
 			continue;
 		}
@@ -169,7 +169,7 @@ int basic_tokenize(BASICProgram *program)
 			tk_op.token[1] = '\0';
 			tk_op.token_type = TOKEN_OPERATOR;
 			tk_op.token_at = tok_ptr;
-			basic_insert_token(ptree, tk_op);
+			basic_insert_token(parse_list, tk_op);
 			lprintf("LEXER", LOGTYPE_DEBUG, "Found operator '%s'\n", tk_op.token);
 			continue;
 		}
@@ -182,7 +182,7 @@ int basic_tokenize(BASICProgram *program)
 			tk_ws.token[0] = *tok_ptr;
 			tk_ws.token[1] = '\0';
 			tk_ws.token_at = tok_ptr;
-			basic_insert_token(ptree, tk_ws);
+			basic_insert_token(parse_list, tk_ws);
 			lprintf("LEXER", LOGTYPE_DEBUG, "Found whitespace '%s'\n", _cvt_whitespace_to_escape_code(*tok_ptr));
 			continue;
 		}
@@ -207,21 +207,21 @@ int basic_tokenize(BASICProgram *program)
 				{
 					// It is a keyword
 					tk_identifier.token_type = TOKEN_KEYWORD;
-					basic_insert_token(ptree, tk_identifier);
+					basic_insert_token(parse_list, tk_identifier);
 					lprintf("LEXER", LOGTYPE_DEBUG, "Found keyword \"%s\"\n", tk_identifier.token);
 				}
 				else if (token_is_bool(tk_identifier.token))
 				{
 					// It is a boolean
 					tk_identifier.token_type = TOKEN_BOOL;
-					basic_insert_token(ptree, tk_identifier);
+					basic_insert_token(parse_list, tk_identifier);
 					lprintf("LEXER", LOGTYPE_DEBUG, "Found boolean %s\n", tk_identifier.token);
 				}
 				else
 				{
-					// It is an identifer
+					// It is an identifier
 					tk_identifier.token_type = TOKEN_IDENTIFIER;
-					basic_insert_token(ptree, tk_identifier);
+					basic_insert_token(parse_list, tk_identifier);
 					lprintf("LEXER", LOGTYPE_DEBUG, "Found identifier \"%s\"\n", tk_identifier.token);
 				}
 
@@ -249,7 +249,7 @@ int basic_tokenize(BASICProgram *program)
 				tk_str.token[id_size] = '\0';
 				tk_str.token_type = TOKEN_STRING;
 				tk_str.token_at = tok_start;
-				basic_insert_token(ptree, tk_str);
+				basic_insert_token(parse_list, tk_str);
 				lprintf("LEXER", LOGTYPE_DEBUG, "Found string literal \"%s\"\n", tk_str.token);
 				continue;
 			}
@@ -262,7 +262,7 @@ int basic_tokenize(BASICProgram *program)
 				tk_sp.token[1] = '\0';
 				tk_sp.token_type = TOKEN_SEPARATOR;
 				tk_sp.token_at = tok_ptr;
-				basic_insert_token(ptree, tk_sp);
+				basic_insert_token(parse_list, tk_sp);
 				lprintf("LEXER", LOGTYPE_DEBUG, "Found separator %c\n", *tok_ptr);
 				continue;
 			}
@@ -273,7 +273,7 @@ int basic_tokenize(BASICProgram *program)
 	tk_end.token_type = TOKEN_END;
 	tk_end.token[0] = '\0';
 	tk_end.token_at = tok_ptr;
-	basic_insert_token(ptree, tk_end);
+	basic_insert_token(parse_list, tk_end);
 	lprintf("LEXER", LOGTYPE_DEBUG, "End of program\n");
 
 	lprintf("LEXER", LOGTYPE_DEBUG, "Finished tokenization of program\n");

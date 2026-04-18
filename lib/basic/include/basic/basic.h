@@ -12,10 +12,9 @@
  *
  */
 
-#include <data_structures/stack.h>
-
 #include "ast.h"
-#include "basic_token.h"
-#include "basic_parser.h"
 #include "basic_program.h"
+#include "basic_token.h"
+#include "basic_lexer.h"
+#include "basic_parser.h"
 #include "basic_runner.h"
