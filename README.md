@@ -30,15 +30,46 @@ The interpreter traverses the AST in breadth-first order, calling functions on i
 
 ## Building
 
-This code is made to build on a Unix-compatible machine (sorry Windows users). Just call `make` and it will output the server binary in `bin/server`. There are no other dependencies.
+This code is mostly cross-platform. The Basic interactive shell is cross-platform, but the server target is currently only buildable on Unix-like systems.
 
-But before that, you need to have the two folders, `bin` and `obj` present in the project directory, if not present.
+CMake is required to build this project. No other external libraries are needed.
+
+### Steps to build
+
+1. Create a "build" directory to store all the build artifacts, and cd into the directory.
+
+```shell
+mkdir build
+cd build/
+```
+
+2. Configure the project
+
+```shell
+cmake ..
+```
+
+3. Build the whole project
+
+```shell
+cmake --build .
+```
 
 ## Running
 
-From the repository folder, run `bin/server`. Don't run it from the bin directory, as it requires the *static* folder to be present in the pwd (You can just move one or the other so that those two are in the same directory).
+### Interactive shell
 
-This will start an HTTP server on port `1111` (You can change this by changing `LISTEN_PORT` constant in `main.c`)
+You can run the interactive shell, which is the `BasicIO` target as:
+
+```shell
+build/BasicIO
+```
+
+### Server
+
+From the repository folder, run `build/server`. Don't run it from the build directory, as it requires the *static* folder to be present in the pwd (You can just move one or the other so that those two are in the same directory).
+
+This will start an HTTP server on port `1111` (You can change this by changing `LISTEN_PORT` constant in `http_server_main.c`)
 
 Start a browser and head over to [http://localhost:1111/](http://localhost:1111/). It will present to you a sort-of IDE where you can type in code and execute it.
 
