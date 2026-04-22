@@ -9,11 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// TODO: Fundamentally change how expressions are evaluated
-// Currently, having function1(function2() + 1) is parsed incorrectly.
-// first, function2() is added to the node, but "+ 1" is evaluated entirely independently of function2()
-// so it fails to find op1. The whole thing should be treated as one expression.
-
 /* BASIC PARSER */
 
 int basic_parse_id_is_fn_call(BASICToken *tokens, int idx, int len)
