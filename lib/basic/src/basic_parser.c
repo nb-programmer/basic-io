@@ -49,19 +49,8 @@ int basic_parse_to_ast_between_level(BASICTokenParseList *parse_list, ASTNode *r
 	{
 		switch (parse_list->tokens[i].token_type)
 		{
+		// Part of an expression
 		case TOKEN_IDENTIFIER:
-		{
-			// The identifier may be a function call
-			if (basic_parse_id_is_fn_call(parse_list->tokens, i, to))
-			{
-				cb_ret = basic_parse_form_function(parse_list, root, i, to, &i);
-				if (cb_ret != 0)
-					return cb_ret;
-				break;
-			}
-		}
-
-		// Not a function call, so it may be an expression
 		case TOKEN_NUM:
 		case TOKEN_STRING:
 		case TOKEN_SEPARATOR:
